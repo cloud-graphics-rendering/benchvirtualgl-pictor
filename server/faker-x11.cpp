@@ -24,6 +24,12 @@
 #endif
 #include "keycodetokeysym.h"
 
+#ifndef STOP_BENCH
+#include "timetrack.h"
+timeTrack* timeTracker = NULL;
+int timeTrackerAttached = 0;
+#endif
+
 using namespace vglserver;
 
 
@@ -700,6 +706,7 @@ int XMoveResizeWindow(Display *dpy, Window win, int x, int y,
 int XNextEvent(Display *dpy, XEvent *xe)
 {
 	int retval = 0;
+	int i = 0;
 	TRY();
 
 	retval = _XNextEvent(dpy, xe);
@@ -709,6 +716,18 @@ int XNextEvent(Display *dpy, XEvent *xe)
       //printf("time: %d, x: %d, y: %d, x_root:%d, y_root:%d, state: %d, keycode: %d, same: %d\n", xkey->time, xkey->x, xkey->y, xkey->x_root, xkey->y_root, xkey->state, xkey->keycode, xkey->same_screen);
             t2p_microTime = xkey->time;
 	    read_clear = 0xdeadbeef;
+            #ifndef STOP_BENCH
+            if(!timeTrackerAttached){
+                key_t key = ftok("shmfile",65);
+                int shmid = shmget(key, NUM_ROW * sizeof(timeTrack), 0666|IPC_CREAT);
+                timeTracker = (timeTrack*) shmat(shmid, (void*)0, 0);
+                timeTrackerAttached = 1;
+            }
+            printf("EventID:0x%x\n", timeTracker->eventID);
+            printf("pid    :0x%x\n", timeTracker->pid);
+            for(i=0;i<TIME_COLUM;i++)
+               printf("array[%d]:%d\n", i, timeTracker->array[i]);
+            #endif
         }
 	handleEvent(dpy, xe);
 
