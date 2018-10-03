@@ -28,6 +28,12 @@
 static int errorLine = -1;
 static FILE *warningFile = NULL;
 
+unsigned int gettime_microPart(void)
+{
+    struct timeval __tv;
+    gettimeofday(&__tv, (struct timezone *)NULL);
+    return(__tv.tv_usec);
+}
 
 #if defined(_WIN32)
 
@@ -564,7 +570,7 @@ int fbx_awrite(fbx_struct *fb, int srcX_, int srcY_, int dstX_, int dstY_,
 	int width_, int height_)
 {
 	int srcX, srcY, dstX, dstY, width, height;
-
+        
 	if(!fb) _throw("Invalid argument");
 
 	srcX = srcX_ >= 0 ? srcX_ : 0;  srcY = srcY_ >= 0 ? srcY_ : 0;
@@ -579,6 +585,20 @@ int fbx_awrite(fbx_struct *fb, int srcX_, int srcY_, int dstX_, int dstY_,
 	if(!fb->wh.dpy || !fb->wh.d || !fb->xi || !fb->bits)
 		_throw("Not initialized");
 
+        if(fb->kb_flag == 0xdeadbeef){
+           long delta2 = gettime_microPart() - fb->t2p_microTime;
+           //fprintf(stderr, "delta: %ld\n", delta2>0 ? delta2 : delta2 + 0x100000000L);
+           fb->kb_flag = 0;
+           fb->xi->data[0] = 0xde;
+           fb->xi->data[1] = 0xad;
+           fb->xi->data[2] = 0xbe;
+           fb->xi->data[3] = 0xef;
+
+           fb->xi->data[4] = (fb->t2p_microTime>>24) & 0xff;
+           fb->xi->data[5] = (fb->t2p_microTime>>16) & 0xff;
+           fb->xi->data[6] = (fb->t2p_microTime>> 8) & 0xff;
+           fb->xi->data[7] = (fb->t2p_microTime)     & 0xff;
+        }
 	#ifdef USESHM
 	if(fb->shm)
 	{

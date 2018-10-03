@@ -29,6 +29,8 @@ using namespace vglserver;
 
 // Interposed X11 functions
 
+int t2p_microTime = 0;
+int read_clear = 0;
 
 extern "C" {
 
@@ -701,6 +703,13 @@ int XNextEvent(Display *dpy, XEvent *xe)
 	TRY();
 
 	retval = _XNextEvent(dpy, xe);
+        if(xe->type == KeyPress){
+            XKeyEvent* xkey = (XKeyEvent*)xe;
+            //printf("type: %d, serial: %d, send_event: %d, disply:%d, win:%d, root: %d, sub:%d\n", xkey->type, xkey->serial, xkey->send_event, xkey->display, xkey->window, xkey->root, xkey->subwindow);
+      //printf("time: %d, x: %d, y: %d, x_root:%d, y_root:%d, state: %d, keycode: %d, same: %d\n", xkey->time, xkey->x, xkey->y, xkey->x_root, xkey->y_root, xkey->state, xkey->keycode, xkey->same_screen);
+            t2p_microTime = xkey->time;
+	    read_clear = 0xdeadbeef;
+        }
 	handleEvent(dpy, xe);
 
 	CATCH();

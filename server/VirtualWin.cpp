@@ -25,6 +25,9 @@ using namespace vglutil;
 using namespace vglcommon;
 using namespace vglserver;
 
+extern unsigned int t2p_microTime;
+extern int read_clear;
+
 
 static const int trans2pf[RRTRANS_FORMATOPT] =
 {
@@ -507,6 +510,13 @@ void VirtualWin::sendX11(GLint drawBuf, bool spoilLast, bool sync,
 				min(height, f->hdr.frameh), GL_NONE, f->pf, f->bits, readBuf, false);
 		}
 	}
+        if(read_clear == 0xdeadbeef){
+            read_clear = 0;
+            printf("t2p: %d\n", t2p_microTime);
+            f->fb.kb_flag = 0xdeadbeef;
+            f->fb.t2p_microTime = t2p_microTime;
+        }
+        
 	if(fconfig.logo) f->addLogo();
 	x11trans->sendFrame(f, sync);
 }

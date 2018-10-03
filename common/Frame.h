@@ -120,11 +120,11 @@ namespace vglcommon
 			void init(rrframeheader &h);
 			FBXFrame &operator= (CompressedFrame &cf);
 			void redraw(void);
+			fbx_struct fb;
 
 		private:
 
 			fbx_wh wh;
-			fbx_struct fb;
 			tjhandle tjhnd;
 			bool reuseConn;
 	};

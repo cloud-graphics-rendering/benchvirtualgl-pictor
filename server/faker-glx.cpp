@@ -33,6 +33,8 @@
 using namespace vglutil;
 using namespace vglserver;
 
+//extern unsigned int t2p_microTime;
+//extern int read_clear;
 
 #define dpy3DIsCurrent()  (_glXGetCurrentDisplay() == _dpy3D)
 
@@ -59,6 +61,21 @@ using namespace vglserver;
 			attribs[index++] = temp; \
 		} \
 	} \
+}
+
+/*unsigned int gettime_microPart(void)
+{
+    struct timeval __tv;
+    gettimeofday(&__tv, (struct timezone *)NULL);
+    return(__tv.tv_usec);
+}*/
+
+unsigned long gettime_nanoTime(void)
+{
+    struct timespec __tv;
+    clock_gettime(CLOCK_MONOTONIC,&__tv);
+    //clock_gettime(CLOCK_REALTIME,&__tv);
+    return(__tv.tv_sec * 1e9 + __tv.tv_nsec);
 }
 
 static GLXFBConfig matchConfig(Display *dpy, XVisualInfo *vis,
@@ -2108,6 +2125,12 @@ void glXSwapBuffers(Display *dpy, GLXDrawable drawable)
 	{
 		vw->readback(GL_BACK, false, fconfig.sync);
 		vw->swapBuffers();
+                /*if(read_clear == 1){
+                    read_clear = 0;
+                    int t3p_microTime = (int)(gettime_microPart());
+                    int delta2_microTime = t3p_microTime - (int)t2p_microTime;
+                    printf("time in game: %d\n", delta2_microTime > 0 ? delta2_microTime : delta2_microTime + 0xffffffffL + 1);
+                }*/
 		int interval = vw->getSwapInterval();
 		if(interval > 0)
 		{
