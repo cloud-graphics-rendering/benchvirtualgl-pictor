@@ -1,3 +1,6 @@
+#ifndef TIME_TRACK
+#define TIME_TRACK
+
 #ifndef STOP_BENCH
 
 #include<sys/ipc.h>
@@ -14,4 +17,5 @@ typedef struct timeTrack{
     long array[TIME_COLUM];
 }timeTrack;
 
+#endif
 #endif

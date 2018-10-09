@@ -24,11 +24,16 @@
 #endif
 #include "keycodetokeysym.h"
 
-#ifndef STOP_BENCH
+#ifndef TIME_TRACK
 #include "timetrack.h"
+#endif
+
+#ifndef STOP_BENCH
 timeTrack* timeTracker = NULL;
 int timeTrackerAttached = 0;
+int current_event_index = 0;
 #endif
+
 
 using namespace vglserver;
 
@@ -36,7 +41,10 @@ using namespace vglserver;
 // Interposed X11 functions
 
 int t2p_microTime = 0;
+int keyboard_eventID = 0;
 int read_clear = 0;
+
+extern long gettime_nanoTime();
 
 extern "C" {
 
@@ -710,23 +718,29 @@ int XNextEvent(Display *dpy, XEvent *xe)
 	TRY();
 
 	retval = _XNextEvent(dpy, xe);
-        if(xe->type == KeyPress){
+        if(xe->type == KeyPress && read_clear == 0){
             XKeyEvent* xkey = (XKeyEvent*)xe;
             //printf("type: %d, serial: %d, send_event: %d, disply:%d, win:%d, root: %d, sub:%d\n", xkey->type, xkey->serial, xkey->send_event, xkey->display, xkey->window, xkey->root, xkey->subwindow);
       //printf("time: %d, x: %d, y: %d, x_root:%d, y_root:%d, state: %d, keycode: %d, same: %d\n", xkey->time, xkey->x, xkey->y, xkey->x_root, xkey->y_root, xkey->state, xkey->keycode, xkey->same_screen);
-            t2p_microTime = xkey->time;
-	    read_clear = 0xdeadbeef;
+            //t2p_microTime = xkey->time;
             #ifndef STOP_BENCH
+            keyboard_eventID = xkey->time;
+	    read_clear = 0xdeadbeef;
             if(!timeTrackerAttached){
                 key_t key = ftok("shmfile",65);
                 int shmid = shmget(key, NUM_ROW * sizeof(timeTrack), 0666|IPC_CREAT);
                 timeTracker = (timeTrack*) shmat(shmid, (void*)0, 0);
                 timeTrackerAttached = 1;
             }
-            printf("EventID:0x%x\n", timeTracker->eventID);
-            printf("pid    :0x%x\n", timeTracker->pid);
-            for(i=0;i<TIME_COLUM;i++)
-               printf("array[%d]:%d\n", i, timeTracker->array[i]);
+            printf("*************************\n");
+            printf("eventID:%d\n", keyboard_eventID);
+            for(i=0;i<NUM_ROW;i++){
+               if(timeTracker[i].eventID == keyboard_eventID){
+                  timeTracker[i].array[4] = (long)gettime_nanoTime();//usTevent_pickup
+                  current_event_index = i;
+                  break;
+               }
+            }
             #endif
         }
 	handleEvent(dpy, xe);
