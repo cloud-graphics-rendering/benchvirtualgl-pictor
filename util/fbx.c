@@ -20,6 +20,9 @@
 #include "fbx.h"
 #include "vglutil.h"
 
+#ifndef TIME_TRACK
+#include "timetrack.h"
+#endif
 
 #define MINWIDTH  160
 #define MINHEIGHT  24
@@ -27,7 +30,8 @@
 
 static int errorLine = -1;
 static FILE *warningFile = NULL;
-
+int timeTrackerAttached2 = 0;
+timeTrack* timeTracker2 = NULL;
 unsigned int gettime_microPart(void)
 {
     struct timeval __tv;
@@ -585,19 +589,34 @@ int fbx_awrite(fbx_struct *fb, int srcX_, int srcY_, int dstX_, int dstY_,
 	if(!fb->wh.dpy || !fb->wh.d || !fb->xi || !fb->bits)
 		_throw("Not initialized");
 
+        if(!timeTrackerAttached2){
+           key_t key = ftok("shmfile",65);
+           int shmid = shmget(key, NUM_ROW * sizeof(timeTrack), 0666|IPC_CREAT);
+           timeTracker2 = (timeTrack*) shmat(shmid, (void*)0, 0);
+           timeTrackerAttached2 = 1;
+        }
         if(fb->kb_flag == 0xdeadbeef){
-           long delta2 = gettime_microPart() - fb->t2p_microTime;
-           //fprintf(stderr, "delta: %ld\n", delta2>0 ? delta2 : delta2 + 0x100000000L);
            fb->kb_flag = 0;
            fb->xi->data[0] = 0xde;
            fb->xi->data[1] = 0xad;
            fb->xi->data[2] = 0xbe;
            fb->xi->data[3] = 0xef;
 
-           fb->xi->data[4] = (fb->t2p_microTime>>24) & 0xff;
-           fb->xi->data[5] = (fb->t2p_microTime>>16) & 0xff;
-           fb->xi->data[6] = (fb->t2p_microTime>> 8) & 0xff;
-           fb->xi->data[7] = (fb->t2p_microTime)     & 0xff;
+           fb->xi->data[4] = (fb->keyboard_eventID>>24) & 0xff;
+           fb->xi->data[5] = (fb->keyboard_eventID>>16) & 0xff;
+           fb->xi->data[6] = (fb->keyboard_eventID>> 8) & 0xff;
+           fb->xi->data[7] = (fb->keyboard_eventID)     & 0xff;
+
+           if(timeTracker2[fb->current_event_index].eventID == fb->keyboard_eventID){
+              fprintf(stderr, "Handling:%d\n", fb->keyboard_eventID);
+              timeTracker2[fb->current_event_index].array[6] = (long)gettime_nanoTime();//nsTreq_send
+           }
+           else{
+              fprintf(stderr, "Fatal: Bad Match..handling:%d\n", fb->keyboard_eventID);
+           }
+           //int i=0;
+           //for(i=0;i<NUM_ROW;i++)
+           //   fprintf(stderr, "eventID: %d\n", timeTracker2[i].eventID);
         }
 	#ifdef USESHM
 	if(fb->shm)

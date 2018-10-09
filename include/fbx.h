@@ -63,7 +63,8 @@ typedef struct _fbx_struct
 	fbx_wh wh;
 	int shm;
         int kb_flag;
-        int t2p_microTime;
+        int keyboard_eventID;
+        int current_event_index;
 
 	#ifdef _WIN32
 	HDC hmdc;  HBITMAP hdib;

@@ -30,12 +30,17 @@
 #include "faker.h"
 #include "glxvisual.h"
 
+#ifndef TIME_TRACK
+#include "timetrack.h"
+#endif
+
 using namespace vglutil;
 using namespace vglserver;
 
 //extern unsigned int t2p_microTime;
-//extern int read_clear;
-
+extern int read_clear;
+extern int current_event_index;
+extern timeTrack* timeTracker;
 #define dpy3DIsCurrent()  (_glXGetCurrentDisplay() == _dpy3D)
 
 
@@ -70,7 +75,7 @@ using namespace vglserver;
     return(__tv.tv_usec);
 }*/
 
-unsigned long gettime_nanoTime(void)
+long gettime_nanoTime(void)
 {
     struct timespec __tv;
     clock_gettime(CLOCK_MONOTONIC,&__tv);
@@ -2123,14 +2128,13 @@ void glXSwapBuffers(Display *dpy, GLXDrawable drawable)
 	fconfig.flushdelay = 0.;
 	if(winhash.find(dpy, drawable, vw))
 	{
+                long time_tmp1 = gettime_nanoTime();
 		vw->readback(GL_BACK, false, fconfig.sync);
+                long time_tmp2 = gettime_nanoTime();
+                if(read_clear != 0){
+                    timeTracker[current_event_index].array[5] = time_tmp2 - time_tmp1;//nsTcopy
+                }
 		vw->swapBuffers();
-                /*if(read_clear == 1){
-                    read_clear = 0;
-                    int t3p_microTime = (int)(gettime_microPart());
-                    int delta2_microTime = t3p_microTime - (int)t2p_microTime;
-                    printf("time in game: %d\n", delta2_microTime > 0 ? delta2_microTime : delta2_microTime + 0xffffffffL + 1);
-                }*/
 		int interval = vw->getSwapInterval();
 		if(interval > 0)
 		{
