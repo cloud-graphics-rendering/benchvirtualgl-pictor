@@ -38,3 +38,8 @@ receives via the VGL Transport. This is only a marginally useful feature, howeve
 VirtualGL can also tunnel the VGL Transport through SSH. To enable SSL support, set the 
 VGL_USESSL CMake variable to 1. 
 Please look here for more information: https://github.com/VirtualGL/virtualgl/blob/master/BUILDING.md
+
+Then, you need to config virtualGl:
+$ sudo vglserver_config
+Choose 1
+Then, N,N,N,X
