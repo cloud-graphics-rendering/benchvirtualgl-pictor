@@ -39,7 +39,13 @@ VirtualGL can also tunnel the VGL Transport through SSH. To enable SSL support, 
 VGL_USESSL CMake variable to 1. 
 Please look here for more information: https://github.com/VirtualGL/virtualgl/blob/master/BUILDING.md
 
-Then, you need to config virtualGl:
+Then, you need to install and config virtualGl:
+$ cd build
+$ rm ./*.deb
+$ sudo make deb
+$ sudo dpkg -r virtualgl
+$ sudo dpkg -i ./*.deb
 $ sudo vglserver_config
+
 Choose 1
 Then, N,N,N,X
