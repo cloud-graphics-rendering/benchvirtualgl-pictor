@@ -744,6 +744,8 @@ int XNextEvent(Display *dpy, XEvent *xe)
         double *input_values = 0;
         const XIRawEvent *rawev = 0;
 	double *vals = NULL;
+	double temp1, temp2;
+        XMotionEvent *xmoe = NULL;
 	//TRY();
 
 	register _XQEvent *qelt;
@@ -759,6 +761,8 @@ int XNextEvent(Display *dpy, XEvent *xe)
 		rawev = (const XIRawEvent*)cookie->data;
 		//const XIRawEvent *rawev = (const XIRawEvent*)cookie->data;
 		if(rawev != NULL){
+                        xmoe = &event->xmotion;
+                          
                         //XMotionEvent *xmoe = &event->xmotion;
                         //double rel_x = xmoe->x - lastMouseX;
                         //double rel_y = xmoe->y - lastMouseY;
@@ -766,9 +770,8 @@ int XNextEvent(Display *dpy, XEvent *xe)
                         //lastMouseY = xmoe->y;
                         
 			vals = rawev->raw_values;
-			double temp1;
 			temp1 = vals[0]; vals[0] -= lastMouseX; lastMouseX = temp1;
-			temp1 = vals[1]; vals[1] -= lastMouseY; lastMouseY = temp1;
+			temp2 = vals[1]; vals[1] -= lastMouseY; lastMouseY = temp2;
                         //vals[0] = rel_x;
                         //vals[1] = rel_y;
 			
@@ -780,7 +783,7 @@ int XNextEvent(Display *dpy, XEvent *xe)
 	}
         UnlockDisplay(dpy);
         if(vals != NULL){
-	    printf("****** val0:%lf, val1:%lf, lastMx:%lf, lastMy:%lf\n", vals2[0], vals2[1],lastMouseX, lastMouseY);//rawev->raw_values[0], rawev->raw_values[1]);
+	    printf("****** rel_x:%lf, rel_y:%lf, vals[0]:%lf, vals[1]:%lf, eventx:%d, eventy:%d, rootx:%d, rooty:%d\n", vals2[0], vals2[1],temp1,temp2, xmoe->x, xmoe->y, xmoe->x_root, xmoe->y_root);
         }
 
 	retval = _XNextEvent(dpy, xe);
