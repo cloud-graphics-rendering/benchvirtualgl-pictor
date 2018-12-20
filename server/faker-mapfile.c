@@ -124,6 +124,7 @@
 		XMaskEvent;
 		XMoveResizeWindow;
 		XNextEvent;
+		XGetEventData;
 		XOpenDisplay;
 		XQueryExtension;
 		XResizeWindow;

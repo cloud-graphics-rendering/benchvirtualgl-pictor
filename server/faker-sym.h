@@ -630,6 +630,8 @@ FUNCDEF6(int, XMoveResizeWindow, Display *, dpy, Window, win, int, x, int, y,
 
 FUNCDEF2(int, XNextEvent, Display *, dpy, XEvent *, xe, XNextEvent);
 
+FUNCDEF2(Bool, XGetEventData, Display *, dpy, XGenericEventCookie *, event, XGetEventData);
+
 FUNCDEF1(Display *, XOpenDisplay, _Xconst char *, name, XOpenDisplay);
 
 FUNCDEF5(Bool, XQueryExtension, Display *, dpy, _Xconst char *, name,

@@ -23,20 +23,40 @@
 #include "XCBConnHash.h"
 #endif
 #include "keycodetokeysym.h"
+#include "Xlibint.h"
+#include "utlist.h"
+
 
 #ifndef TIME_TRACK
 #include "timetrack.h"
 #endif
-
+//#include <X11/Xlib.h>
+#include <X11/extensions/XInput2.h>
+#include <X11/extensions/XI2proto.h>
+#include <math.h>
 #ifndef STOP_BENCH
 timeTrack* timeTracker = NULL;
 int timeTrackerAttached = 0;
 int current_event_index = 0;
 #endif
 
+static double lastMouseX = 640;
+static double lastMouseY = 480;
+
+#ifdef WIN32
+#define ECHECK(err) (WSAGetLastError() == err)
+#define ESET(val) WSASetLastError(val)
+#else
+#ifdef __UNIXOS2__
+#define ECHECK(err) (errno == err)
+#define ESET(val)
+#else
+#define ECHECK(err) (errno == err)
+#define ESET(val) errno = val
+#endif
+#endif
 
 using namespace vglserver;
-
 
 // Interposed X11 functions
 
@@ -47,6 +67,7 @@ int read_clear = 0;
 extern long gettime_nanoTime();
 
 extern "C" {
+
 
 // XCloseDisplay() implicitly closes all windows and subwindows that were
 // attached to the display handle, so we have to make sure that the
@@ -715,10 +736,56 @@ int XNextEvent(Display *dpy, XEvent *xe)
 {
 	int retval = 0;
 	int i = 0;
-	TRY();
+	XEvent *event;
+	XGenericEventCookie *cookie;
+	double vals2[2] = {-1, -1};
+        int *changedx = 0;
+        int *changedy = 0;
+        double *input_values = 0;
+        const XIRawEvent *rawev = 0;
+	double *vals = NULL;
+	//TRY();
+
+	register _XQEvent *qelt;
+
+        LockDisplay(dpy);
+
+        if (dpy->head != NULL){
+          //_XReadEvents(dpy);
+          qelt = dpy->head;
+          event = &(qelt->event);
+	  cookie = &event->xcookie;
+	  if(cookie != NULL && cookie->evtype == XI_RawMotion){ 
+		rawev = (const XIRawEvent*)cookie->data;
+		//const XIRawEvent *rawev = (const XIRawEvent*)cookie->data;
+		if(rawev != NULL){
+                        //XMotionEvent *xmoe = &event->xmotion;
+                        //double rel_x = xmoe->x - lastMouseX;
+                        //double rel_y = xmoe->y - lastMouseY;
+                        //lastMouseX = xmoe->x;
+                        //lastMouseY = xmoe->y;
+                        
+			vals = rawev->raw_values;
+			double temp1;
+			temp1 = vals[0]; vals[0] -= lastMouseX; lastMouseX = temp1;
+			temp1 = vals[1]; vals[1] -= lastMouseY; lastMouseY = temp1;
+                        //vals[0] = rel_x;
+                        //vals[1] = rel_y;
+			
+			int val;
+			val = (int)vals[0]; vals2[0] = val;
+			val = (int)vals[1]; vals2[1] = val;
+		}
+	  }
+	}
+        UnlockDisplay(dpy);
+        if(vals != NULL){
+	    printf("****** val0:%lf, val1:%lf, lastMx:%lf, lastMy:%lf\n", vals2[0], vals2[1],lastMouseX, lastMouseY);//rawev->raw_values[0], rawev->raw_values[1]);
+        }
 
 	retval = _XNextEvent(dpy, xe);
-        if(xe->type == KeyPress && read_clear == 0){
+
+	if(xe->type == KeyPress && read_clear == 0){
             XKeyEvent* xkey = (XKeyEvent*)xe;
             //printf("type: %d, serial: %d, send_event: %d, disply:%d, win:%d, root: %d, sub:%d\n", xkey->type, xkey->serial, xkey->send_event, xkey->display, xkey->window, xkey->root, xkey->subwindow);
       //printf("time: %d, x: %d, y: %d, x_root:%d, y_root:%d, state: %d, keycode: %d, same: %d\n", xkey->time, xkey->x, xkey->y, xkey->x_root, xkey->y_root, xkey->state, xkey->keycode, xkey->same_screen);
@@ -743,12 +810,17 @@ int XNextEvent(Display *dpy, XEvent *xe)
             }
             #endif
         }
+            
 	handleEvent(dpy, xe);
 
-	CATCH();
+	//CATCH();
 	return retval;
 }
 
+Bool XGetEventData(Display *dpy, XGenericEventCookie *event){
+       printf("intercepte XGetEventData....\n");
+       return _XGetEventData(dpy, event);
+}
 
 int XResizeWindow(Display *dpy, Window win, unsigned int width,
 	unsigned int height)
