@@ -32,6 +32,7 @@
 using namespace vglutil;
 using namespace vglserver;
 
+FILE* globalLog = NULL;
 
 namespace vglfaker {
 
@@ -59,7 +60,7 @@ static void cleanup(void)
 void safeExit(int retcode)
 {
 	bool shutdown;
-
+        fclose(globalLog);
 	globalMutex.lock(false);
 	shutdown = deadYet;
 	if(!deadYet)
@@ -115,7 +116,7 @@ void init(void)
 	GlobalCriticalSection::SafeLock l(globalMutex);
 	if(init) return;
 	init = 1;
-
+        globalLog = fopen("/tmp/Virtalgl.log","a");
 	fconfig_reloadenv();
 	if(strlen(fconfig.log) > 0) vglout.logTo(fconfig.log);
 

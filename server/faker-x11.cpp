@@ -30,7 +30,7 @@
 #ifndef TIME_TRACK
 #include "timetrack.h"
 #endif
-//#include <X11/Xlib.h>
+#include <X11/Xlib.h>
 #include <X11/extensions/XInput2.h>
 #include <X11/extensions/XI2proto.h>
 #include <math.h>
@@ -40,8 +40,11 @@ int timeTrackerAttached = 0;
 int current_event_index = 0;
 #endif
 
-static double lastMouseX = 640;
-static double lastMouseY = 480;
+double lastMouseXPos = 649;
+double lastMouseYPos = 481;
+int InGameThreashold = 0;
+int InGameStatus = 0;
+extern FILE *globalLog;
 
 #ifdef WIN32
 #define ECHECK(err) (WSAGetLastError() == err)
@@ -737,62 +740,62 @@ int XNextEvent(Display *dpy, XEvent *xe)
 	int retval = 0;
 	int i = 0;
 	XEvent *event;
-	XGenericEventCookie *cookie;
 	double vals2[2] = {-1, -1};
-        int *changedx = 0;
-        int *changedy = 0;
-        double *input_values = 0;
-        const XIRawEvent *rawev = 0;
-	double *vals = NULL;
-	double temp1, temp2;
-        XMotionEvent *xmoe = NULL;
 	//TRY();
 
 	register _XQEvent *qelt;
-
         LockDisplay(dpy);
-
         if (dpy->head != NULL){
-          //_XReadEvents(dpy);
           qelt = dpy->head;
           event = &(qelt->event);
-	  cookie = &event->xcookie;
+	  XGenericEventCookie *cookie = &event->xcookie;
+	  fprintf(globalLog,"cookie:%p, type:%d\n", cookie, cookie->evtype);
 	  if(cookie != NULL && cookie->evtype == XI_RawMotion){ 
-		rawev = (const XIRawEvent*)cookie->data;
-		//const XIRawEvent *rawev = (const XIRawEvent*)cookie->data;
+	        fprintf(globalLog,"This is XI_RawMotion\n");
+		const XIRawEvent *rawev = (const XIRawEvent*)cookie->data;
 		if(rawev != NULL){
-                        xmoe = &event->xmotion;
-                          
-                        //XMotionEvent *xmoe = &event->xmotion;
-                        //double rel_x = xmoe->x - lastMouseX;
-                        //double rel_y = xmoe->y - lastMouseY;
-                        //lastMouseX = xmoe->x;
-                        //lastMouseY = xmoe->y;
-                        
-			vals = rawev->raw_values;
-			temp1 = vals[0]; vals[0] -= lastMouseX; lastMouseX = temp1;
-			temp2 = vals[1]; vals[1] -= lastMouseY; lastMouseY = temp2;
-                        //vals[0] = rel_x;
-                        //vals[1] = rel_y;
+		    double *vals = rawev->raw_values;
+		    double temp1 = vals[0]; vals[0] -= lastMouseXPos; lastMouseXPos = temp1;
+		    double temp2 = vals[1]; vals[1] -= lastMouseYPos; lastMouseYPos = temp2;
 			
-			int val;
-			val = (int)vals[0]; vals2[0] = val;
-			val = (int)vals[1]; vals2[1] = val;
+		    //int val;
+		    //val = (int)vals[0]; vals2[0] = val;
+		    //val = (int)vals[1]; vals2[1] = val;
 		}
 	  }
 	}
         UnlockDisplay(dpy);
-        if(vals != NULL){
-	    printf("****** rel_x:%lf, rel_y:%lf, vals[0]:%lf, vals[1]:%lf, eventx:%d, eventy:%d, rootx:%d, rooty:%d\n", vals2[0], vals2[1],temp1,temp2, xmoe->x, xmoe->y, xmoe->x_root, xmoe->y_root);
-        }
-
 	retval = _XNextEvent(dpy, xe);
+        if(xe->type == 6 && xe->xmotion.x == 640 && xe->xmotion.y == 480){
+            if(InGameStatus == 0){
+                   InGameThreashold++;
+                if(InGameThreashold > 10){
+                   InGameStatus = 1;
+                   InGameThreashold = 10;
+                }
+            }else{
+                   InGameThreashold = 10;
+            }
+        }else if(xe->type == 6 && InGameStatus == 1){
+	    fprintf(globalLog,"In Game\n");
+            InGameThreashold--;
+            if(InGameThreashold < 0){
+                InGameThreashold = 0;
+                InGameStatus = 0;
+            }
+            int tmp1 = xe->xmotion.x;
+            int tmp2 = xe->xmotion.y;
+            xe->xmotion.x = xe->xmotion.x - lastMouseXPos + 640;
+            xe->xmotion.y = xe->xmotion.y - lastMouseYPos + 480;
+            xe->xmotion.x_root = xe->xmotion.x;
+            xe->xmotion.y_root = xe->xmotion.y;
+            lastMouseXPos = tmp1;
+            lastMouseYPos = tmp2;
+	    //fprintf(globalLog,"++++ x:%d, y:%d, rootx:%d, rooty:%d\n", xe->xmotion.x, xe->xmotion.y, xe->xmotion.x_root, xe->xmotion.y_root);
+        }
 
 	if(xe->type == KeyPress && read_clear == 0){
             XKeyEvent* xkey = (XKeyEvent*)xe;
-            //printf("type: %d, serial: %d, send_event: %d, disply:%d, win:%d, root: %d, sub:%d\n", xkey->type, xkey->serial, xkey->send_event, xkey->display, xkey->window, xkey->root, xkey->subwindow);
-      //printf("time: %d, x: %d, y: %d, x_root:%d, y_root:%d, state: %d, keycode: %d, same: %d\n", xkey->time, xkey->x, xkey->y, xkey->x_root, xkey->y_root, xkey->state, xkey->keycode, xkey->same_screen);
-            //t2p_microTime = xkey->time;
             #ifndef STOP_BENCH
             keyboard_eventID = xkey->time;
 	    read_clear = 0xdeadbeef;
@@ -821,7 +824,7 @@ int XNextEvent(Display *dpy, XEvent *xe)
 }
 
 Bool XGetEventData(Display *dpy, XGenericEventCookie *event){
-       printf("intercepte XGetEventData....\n");
+       fprintf(globalLog, "intercepte XGetEventData....\n");
        return _XGetEventData(dpy, event);
 }
 
