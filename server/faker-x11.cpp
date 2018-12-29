@@ -799,7 +799,7 @@ int XNextEvent(Display *dpy, XEvent *xe)
             #ifndef STOP_BENCH
             XKeyEvent* xkey = (XKeyEvent*)xe;
             keypointer_eventID = xkey->time;
-	    read_clear = 0xdeadbeef;
+	    read_clear = 0xdeadbeef;// a little weird..
             if(!timeTrackerAttached){
                 key_t key = ftok("shmfile",65);
                 int shmid = shmget(key, NUM_ROW * sizeof(timeTrack), 0666|IPC_CREAT);
@@ -809,7 +809,7 @@ int XNextEvent(Display *dpy, XEvent *xe)
             //printf("*************************\n");
             //printf("eventID:%d\n", keypointer_eventID);
             for(i=0;i<NUM_ROW;i++){
-               if(timeTracker[i].eventID == keypointer_eventID && timeTracker[i].valid == 1){
+               if(timeTracker[i].eventID == keypointer_eventID){
                   timeTracker[i].array[4] = (long)gettime_nanoTime();//usTevent_pickup
                   current_event_index = i;
                   break;
