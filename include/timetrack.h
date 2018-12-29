@@ -10,11 +10,11 @@
 #include <unistd.h>
 #include <time.h>
 #define TIME_COLUM 10
-#define NUM_ROW 10
+#define NUM_ROW 100
 
 typedef struct timeTrack{
     int eventID;
-    pid_t pid;
+    int valid;
     long array[TIME_COLUM];
 }timeTrack;
 

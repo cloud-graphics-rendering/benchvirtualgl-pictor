@@ -19,6 +19,7 @@
 #include <stdlib.h>
 #include "fbx.h"
 #include "vglutil.h"
+#include <sys/time.h>
 
 #ifndef TIME_TRACK
 #include "timetrack.h"
@@ -602,17 +603,18 @@ int fbx_awrite(fbx_struct *fb, int srcX_, int srcY_, int dstX_, int dstY_,
            fb->xi->data[2] = 0xbe;
            fb->xi->data[3] = 0xef;
 
-           fb->xi->data[4] = (fb->keyboard_eventID>>24) & 0xff;
-           fb->xi->data[5] = (fb->keyboard_eventID>>16) & 0xff;
-           fb->xi->data[6] = (fb->keyboard_eventID>> 8) & 0xff;
-           fb->xi->data[7] = (fb->keyboard_eventID)     & 0xff;
+           fb->xi->data[4] = (fb->keypointer_eventID>>24) & 0xff;
+           fb->xi->data[5] = (fb->keypointer_eventID>>16) & 0xff;
+           fb->xi->data[6] = (fb->keypointer_eventID>> 8) & 0xff;
+           fb->xi->data[7] = (fb->keypointer_eventID)     & 0xff;
 
-           if(timeTracker2[fb->current_event_index].eventID == fb->keyboard_eventID){
-              fprintf(stderr, "Handling:%d\n", fb->keyboard_eventID);
+           if(timeTracker2[fb->current_event_index].eventID == fb->keypointer_eventID){
+              fprintf(stderr, "Handling:%d\n", fb->keypointer_eventID);
               timeTracker2[fb->current_event_index].array[6] = (long)gettime_nanoTime();//nsTreq_send
            }
            else{
-              fprintf(stderr, "Fatal: Bad Match..handling:%d\n", fb->keyboard_eventID);
+              timeTracker2[fb->current_event_index].valid = 0;//nsTreq_send
+              fprintf(stderr, "Fatal: Bad Match..handling:%d\n", fb->keypointer_eventID);
            }
            //int i=0;
            //for(i=0;i<NUM_ROW;i++)

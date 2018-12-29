@@ -64,7 +64,7 @@ using namespace vglserver;
 // Interposed X11 functions
 
 int t2p_microTime = 0;
-int keyboard_eventID = 0;
+int keypointer_eventID = 0;
 int read_clear = 0;
 
 extern long gettime_nanoTime();
@@ -749,9 +749,9 @@ int XNextEvent(Display *dpy, XEvent *xe)
           qelt = dpy->head;
           event = &(qelt->event);
 	  XGenericEventCookie *cookie = &event->xcookie;
-	  fprintf(globalLog,"cookie:%p, type:%d\n", cookie, cookie->evtype);
+	  //fprintf(globalLog,"cookie:%p, type:%d\n", cookie, cookie->evtype);
 	  if(cookie != NULL && cookie->evtype == XI_RawMotion){ 
-	        fprintf(globalLog,"This is XI_RawMotion\n");
+	        //fprintf(globalLog,"This is XI_RawMotion\n");
 		const XIRawEvent *rawev = (const XIRawEvent*)cookie->data;
 		if(rawev != NULL){
 		    double *vals = rawev->raw_values;
@@ -777,7 +777,6 @@ int XNextEvent(Display *dpy, XEvent *xe)
                    InGameThreashold = 10;
             }
         }else if(xe->type == 6 && InGameStatus == 1){
-	    fprintf(globalLog,"In Game\n");
             InGameThreashold--;
             if(InGameThreashold < 0){
                 InGameThreashold = 0;
@@ -794,26 +793,31 @@ int XNextEvent(Display *dpy, XEvent *xe)
 	    //fprintf(globalLog,"++++ x:%d, y:%d, rootx:%d, rooty:%d\n", xe->xmotion.x, xe->xmotion.y, xe->xmotion.x_root, xe->xmotion.y_root);
         }
 
-	if(xe->type == KeyPress && read_clear == 0){
-            XKeyEvent* xkey = (XKeyEvent*)xe;
+	//if((xe->type == KeyPress ||(xe->type == 6 && InGameStatus == 1)) && read_clear == 0){
+	//if((xe->type == KeyPress || xe->type == ButtonPress) && read_clear == 0){
+	if((xe->type == KeyPress || xe->type == 6) && read_clear == 0){
             #ifndef STOP_BENCH
-            keyboard_eventID = xkey->time;
-	    read_clear = 0xdeadbeef;
+            XKeyEvent* xkey = (XKeyEvent*)xe;
+            keypointer_eventID = xkey->time;
+	    read_clear = 0xdeadbeef;// a little weird..
             if(!timeTrackerAttached){
                 key_t key = ftok("shmfile",65);
                 int shmid = shmget(key, NUM_ROW * sizeof(timeTrack), 0666|IPC_CREAT);
                 timeTracker = (timeTrack*) shmat(shmid, (void*)0, 0);
                 timeTrackerAttached = 1;
             }
-            printf("*************************\n");
-            printf("eventID:%d\n", keyboard_eventID);
+            //printf("*************************\n");
+            //printf("eventID:%d\n", keypointer_eventID);
             for(i=0;i<NUM_ROW;i++){
-               if(timeTracker[i].eventID == keyboard_eventID){
+               if(timeTracker[i].eventID == keypointer_eventID){
                   timeTracker[i].array[4] = (long)gettime_nanoTime();//usTevent_pickup
                   current_event_index = i;
                   break;
                }
             }
+            //if(i == NUM_ROW){
+            //   timeTracker[i].valid = 0;
+            //}
             #endif
         }
             

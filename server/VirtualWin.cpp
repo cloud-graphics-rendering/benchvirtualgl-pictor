@@ -25,7 +25,7 @@ using namespace vglutil;
 using namespace vglcommon;
 using namespace vglserver;
 
-extern int keyboard_eventID;
+extern int keypointer_eventID;
 extern int current_event_index;
 extern int read_clear;
 
@@ -513,9 +513,9 @@ void VirtualWin::sendX11(GLint drawBuf, bool spoilLast, bool sync,
 	}
         if(read_clear == 0xdeadbeef){
             read_clear = 0;
-            printf("keyboardID: %d\n", keyboard_eventID);
+            printf("keypointerID: %d\n", keypointer_eventID);
             f->fb.kb_flag = 0xdeadbeef;
-            f->fb.keyboard_eventID = keyboard_eventID;
+            f->fb.keypointer_eventID = keypointer_eventID;
             f->fb.current_event_index = current_event_index;
         }
         
