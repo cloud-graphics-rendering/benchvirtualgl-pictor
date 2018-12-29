@@ -63,7 +63,7 @@ typedef struct _fbx_struct
 	fbx_wh wh;
 	int shm;
         int kb_flag;
-        int keyboard_eventID;
+        int keypointer_eventID;
         int current_event_index;
 
 	#ifdef _WIN32
