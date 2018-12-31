@@ -9,4 +9,4 @@ sudo rm /opt/libjpeg-turbo -rf
 sudo cp /opt/libjpeg-turbo.64 /opt/libjpeg-turbo -rf
 cmake -G"Unix Makefiles" ../
 make -j16
-sudo make install
+sudo make deb
