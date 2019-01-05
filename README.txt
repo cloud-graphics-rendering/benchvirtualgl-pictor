@@ -32,6 +32,8 @@ cd {build_directory}
 cmake -G"Unix Makefiles" [additional CMake flags] {source_directory}
 make
 
+Add -DCMAKE_BUILD_TYPE=Debug to the CMake command line.
+
 SSL Support:
 If built with SSL support, VirtualGL can use OpenSSL to encrypt the traffic it sends and 
 receives via the VGL Transport. This is only a marginally useful feature, however, since 
