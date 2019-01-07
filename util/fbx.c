@@ -33,6 +33,7 @@ static int errorLine = -1;
 static FILE *warningFile = NULL;
 int timeTrackerAttached2 = 0;
 timeTrack* timeTracker2 = NULL;
+FILE * globalLog1;
 unsigned int gettime_microPart(void)
 {
     struct timeval __tv;
@@ -156,6 +157,8 @@ int fbx_init(fbx_struct *fb, fbx_wh wh, int width_, int height_, int useShm)
 {
 	int width, height;
 	int rmask, gmask, bmask, ps, i;
+
+        
 	#ifdef _WIN32
 	BMINFO bminfo;  HBITMAP hmembmp = 0;  RECT rect;  HDC hdc = NULL;
 	#else
@@ -574,6 +577,7 @@ int fbx_flip(fbx_struct *fb, int x_, int y_, int width_, int height_)
 int fbx_awrite(fbx_struct *fb, int srcX_, int srcY_, int dstX_, int dstY_,
 	int width_, int height_)
 {
+        //globalLog1 = fopen("/tmp/Virtalgl1.log","rw");
 	int srcX, srcY, dstX, dstY, width, height;
         
 	if(!fb) _throw("Invalid argument");
@@ -638,6 +642,7 @@ int fbx_awrite(fbx_struct *fb, int srcX_, int srcY_, int dstX_, int dstY_,
 		XPutImage(fb->wh.dpy, draw, fb->xgc, fb->xi, srcX, srcY, dstX, dstY, width,
 			height);
 	}
+        //fclose(globalLog1);
 	return 0;
 
 	finally:
