@@ -17,7 +17,7 @@ export CFLAGS=-m64
 export CXXFLAGS=-m64
 export LDFLAGS=-m64
 sudo apt-get install libxv-dev libxtst-dev libglu1-mesa-dev
-cmake -G"Unix Makefiles" ../
+cmake -G"Unix Makefiles" -DCMAKE_BUILD_TYPE=Debug ../
 make -j16
 sudo make deb
 sudo mv ./lib ./lib64
@@ -29,8 +29,8 @@ sudo cp /opt/libjpeg-turbo.32 /opt/libjpeg-turbo -rf
 export CFLAGS=-m32
 export CXXFLAGS=-m32
 export LDFLAGS=-m32
-sudo apt-get install g++-multilib libxv-dev:i386 libxtst-dev:i386 libglu1-mesa-dev:i386
-cmake -G"Unix Makefiles" ../
+sudo apt-get install g++-multilib libxv-dev:i386 libxtst-dev:i386 libglu1-mesa-dev:i386 libxi-dev:i386
+cmake -G"Unix Makefiles" -DCMAKE_BUILD_TYPE=Debug ../
 make -j16
 sudo mv ./lib ./lib32
 
@@ -42,6 +42,10 @@ sudo vglserver_config
 
 echo "Configuring VirtualGL.."
 sudo cp ./lib32/lib*.so /usr/lib32/
+
+sudo rm /opt/libjpeg-turbo -rf
+sudo cp /opt/libjpeg-turbo.64 /opt/libjpeg-turbo -rf
+sudo apt-get install libxv-dev libxtst-dev libglu1-mesa-dev
 
 # launch VNC session
 ~/Documents/workspace/benchvnc-build/bin/vncserver -kill :1

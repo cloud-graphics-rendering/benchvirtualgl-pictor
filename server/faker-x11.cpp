@@ -26,20 +26,21 @@
 #include "Xlibint.h"
 #include "utlist.h"
 
-
-#ifndef TIME_TRACK
 #include "timetrack.h"
-#endif
 #include <X11/Xlib.h>
 #include <X11/extensions/XInput2.h>
 #include <X11/extensions/XI2proto.h>
 #include <math.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <sys/syscall.h>
+
 #ifndef STOP_BENCH
 timeTrack* timeTracker = NULL;
 int timeTrackerAttached = 0;
 int current_event_index = 0;
 #endif
-
+struct fd_pair *headerfd;
 double lastMouseXPos = 649;
 double lastMouseYPos = 481;
 int InGameThreashold = 0;
@@ -63,13 +64,49 @@ using namespace vglserver;
 
 // Interposed X11 functions
 
-int t2p_microTime = 0;
-int keypointer_eventID = 0;
 int read_clear = 0;
+int keypointer_eventID = 0;
 
 extern long gettime_nanoTime();
 
+FILE* getLogFilePointer(pid_t cur_pid){
+     struct fd_pair *tmpfd = headerfd;
+     struct fd_pair *lstfd = NULL;
+     int try_find = 0;
+
+     char str1[10];
+     char logpath[80] ={'/','t','m','p','/','v','g','l','/'};
+
+     while(tmpfd!=NULL){
+         if(tmpfd->pid != cur_pid){
+             lstfd = tmpfd;
+             tmpfd = tmpfd->next;
+             try_find = 1;
+         }else{
+             return tmpfd->fd;
+         }
+     }
+     if(tmpfd == NULL){
+          tmpfd = (struct fd_pair*)malloc(sizeof(struct fd_pair));
+          tmpfd->pid = cur_pid;
+          sprintf(str1, "%d", cur_pid);
+          strcat(logpath, str1);
+          tmpfd->fd = fopen(logpath, "ab+");
+          //fprintf(globalLog, "logpath:%s, fd: %p\n", logpath, tmpfd->fd);
+          tmpfd->status = 1;
+          tmpfd->next = NULL;
+          if(try_find == 0){
+             headerfd = tmpfd;
+          }else{
+             lstfd->next = tmpfd;
+          }
+          return (tmpfd->fd!=NULL)?tmpfd->fd:NULL;
+     }
+}
+
+
 extern "C" {
+
 
 
 // XCloseDisplay() implicitly closes all windows and subwindows that were
@@ -743,24 +780,25 @@ int XNextEvent(Display *dpy, XEvent *xe)
 	double vals2[2] = {-1, -1};
 	//TRY();
 
+        pid_t cur_pid = getpid();
+        pid_t cur_tid = syscall(SYS_gettid);
+        FILE* tmpFp = getLogFilePointer(cur_pid);
+        if(tmpFp == NULL){
+           fprintf(globalLog, "tmpFp in Xnextevent is NULL\n");
+        }
+
 	register _XQEvent *qelt;
         LockDisplay(dpy);
         if (dpy->head != NULL){
           qelt = dpy->head;
           event = &(qelt->event);
 	  XGenericEventCookie *cookie = &event->xcookie;
-	  //fprintf(globalLog,"cookie:%p, type:%d\n", cookie, cookie->evtype);
 	  if(cookie != NULL && cookie->evtype == XI_RawMotion){ 
-	        //fprintf(globalLog,"This is XI_RawMotion\n");
 		const XIRawEvent *rawev = (const XIRawEvent*)cookie->data;
 		if(rawev != NULL){
 		    double *vals = rawev->raw_values;
 		    double temp1 = vals[0]; vals[0] -= lastMouseXPos; lastMouseXPos = temp1;
 		    double temp2 = vals[1]; vals[1] -= lastMouseYPos; lastMouseYPos = temp2;
-			
-		    //int val;
-		    //val = (int)vals[0]; vals2[0] = val;
-		    //val = (int)vals[1]; vals2[1] = val;
 		}
 	  }
 	}
@@ -790,24 +828,20 @@ int XNextEvent(Display *dpy, XEvent *xe)
             xe->xmotion.y_root = xe->xmotion.y;
             lastMouseXPos = tmp1;
             lastMouseYPos = tmp2;
-	    //fprintf(globalLog,"++++ x:%d, y:%d, rootx:%d, rooty:%d\n", xe->xmotion.x, xe->xmotion.y, xe->xmotion.x_root, xe->xmotion.y_root);
         }
 
-	//if((xe->type == KeyPress ||(xe->type == 6 && InGameStatus == 1)) && read_clear == 0){
-	//if((xe->type == KeyPress || xe->type == ButtonPress) && read_clear == 0){
+	fprintf(tmpFp,"PID: %d, TID: %d, 111111 event type: %d, read_clear: %x\n", cur_pid, cur_tid, xe->type, read_clear);
 	if((xe->type == KeyPress || xe->type == 6) && read_clear == 0){
-            #ifndef STOP_BENCH
+	    fprintf(tmpFp,"PID: %d, TID: %d, 2222 motion or keypress: x:%d, y:%d, rootx:%d, rooty:%d\n", cur_pid, cur_tid, xe->xmotion.x, xe->xmotion.y, xe->xmotion.x_root, xe->xmotion.y_root);
+	    fprintf(tmpFp,"PID: %d, TID: %d, 3333 event type: %d\n", cur_pid, cur_tid, xe->type);
             XKeyEvent* xkey = (XKeyEvent*)xe;
             keypointer_eventID = xkey->time;
-	    read_clear = 0xdeadbeef;// a little weird..
             if(!timeTrackerAttached){
                 key_t key = ftok("shmfile",65);
                 int shmid = shmget(key, NUM_ROW * sizeof(timeTrack), 0666|IPC_CREAT);
                 timeTracker = (timeTrack*) shmat(shmid, (void*)0, 0);
                 timeTrackerAttached = 1;
             }
-            //printf("*************************\n");
-            //printf("eventID:%d\n", keypointer_eventID);
             for(i=0;i<NUM_ROW;i++){
                if(timeTracker[i].eventID == keypointer_eventID){
                   timeTracker[i].array[4] = (long)gettime_nanoTime();//usTevent_pickup
@@ -815,21 +849,45 @@ int XNextEvent(Display *dpy, XEvent *xe)
                   break;
                }
             }
-            //if(i == NUM_ROW){
-            //   timeTracker[i].valid = 0;
-            //}
-            #endif
+	    read_clear = 0xdeadbeef;
         }
-            
 	handleEvent(dpy, xe);
 
 	//CATCH();
 	return retval;
 }
 
-Bool XGetEventData(Display *dpy, XGenericEventCookie *event){
-       fprintf(globalLog, "intercepte XGetEventData....\n");
-       return _XGetEventData(dpy, event);
+int XPutImage(Display *dpy, Drawable d, GC gc, XImage *image, int src_x, int src_y, int dest_x, int dest_y, unsigned int width, unsigned int height){
+       pid_t cur_pid = getpid();
+       pid_t cur_tid = syscall(SYS_gettid);
+       FILE* tmpFp = getLogFilePointer(cur_pid);
+       if(tmpFp == NULL){
+           fprintf(globalLog, "tmpFp in XPutImage is NULL\n");
+       }
+       fprintf(tmpFp, "PID: %d, TID: %d, 4444 intercepte XPutImage....read_clear:%x\n", cur_pid, cur_tid, read_clear);
+       if(read_clear == 0xdeadbeef){
+           fprintf(tmpFp, "PID: %d, TID: %d, 5555 intercepte XPutImage....\n", cur_pid, cur_tid);
+           image->data[0] = 0xde;
+           image->data[1] = 0xad;
+           image->data[2] = 0xbe;
+           image->data[3] = 0xef;
+
+           image->data[4] = (keypointer_eventID>>24) & 0xff;
+           image->data[5] = (keypointer_eventID>>16) & 0xff;
+           image->data[6] = (keypointer_eventID>> 8) & 0xff;
+           image->data[7] = (keypointer_eventID)     & 0xff;
+
+           if(timeTracker[current_event_index].eventID == keypointer_eventID){
+              fprintf(tmpFp, "PID: %d, TID: %d, Handling:%d\n", cur_pid, cur_tid, keypointer_eventID);
+              timeTracker[current_event_index].array[6] = (long)gettime_nanoTime();//nsTreq_send
+           }else{
+              fprintf(tmpFp, "PID: %d, TID: %d, Fatal: Bad Match..handling:%d\n", cur_pid, cur_tid, keypointer_eventID);
+              timeTracker[current_event_index].valid = 0;
+           }
+           fprintf(tmpFp, "PID:%d, TID: %d, 2D XPutImage set read_clear to 0\n", cur_pid, cur_tid);
+           read_clear = 0;
+       }
+       return _XPutImage(dpy, d, gc, image, src_x, src_y, dest_x, dest_y, width, height);
 }
 
 int XResizeWindow(Display *dpy, Window win, unsigned int width,

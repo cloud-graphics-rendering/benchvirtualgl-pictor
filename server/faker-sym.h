@@ -598,6 +598,10 @@ FUNCDEF9(Window, XCreateSimpleWindow, Display *, dpy, Window, parent, int, x,
 	border_width, unsigned long, border, unsigned long, background,
 	XCreateSimpleWindow);
 
+FUNCDEF10(int, XPutImage, Display*, dpy, Drawable, d, GC, gc, 
+        XImage*, image, int, src_x, int, src_y, int, dest_x, int, dest_y, unsigned int, width, unsigned int, height,
+        XPutImage);
+
 FUNCDEF12(Window, XCreateWindow, Display *, dpy, Window, parent, int, x,
 	int, y, unsigned int, width, unsigned int, height,
 	unsigned int, border_width, int, depth, unsigned int, c_class,
@@ -630,7 +634,6 @@ FUNCDEF6(int, XMoveResizeWindow, Display *, dpy, Window, win, int, x, int, y,
 
 FUNCDEF2(int, XNextEvent, Display *, dpy, XEvent *, xe, XNextEvent);
 
-FUNCDEF2(Bool, XGetEventData, Display *, dpy, XGenericEventCookie *, event, XGetEventData);
 
 FUNCDEF1(Display *, XOpenDisplay, _Xconst char *, name, XOpenDisplay);
 
