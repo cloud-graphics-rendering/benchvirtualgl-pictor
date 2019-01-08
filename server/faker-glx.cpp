@@ -29,6 +29,8 @@
 #include "rr.h"
 #include "faker.h"
 #include "glxvisual.h"
+#include <sys/types.h>
+#include <sys/syscall.h>
 
 #ifndef TIME_TRACK
 #include "timetrack.h"
@@ -43,6 +45,9 @@ extern int current_event_index;
 extern timeTrack* timeTracker;
 #define dpy3DIsCurrent()  (_glXGetCurrentDisplay() == _dpy3D)
 
+extern FILE *globalLog;
+extern struct fd_pair *headerfd;
+extern FILE* getLogFilePointer(pid_t cur_pid);
 
 // This emulates the behavior of the nVidia drivers
 #define VGL_MAX_SWAP_INTERVAL  8
@@ -2111,6 +2116,14 @@ void glXSelectEventSGIX(Display *dpy, GLXDrawable drawable, unsigned long mask)
 
 void glXSwapBuffers(Display *dpy, GLXDrawable drawable)
 {
+        pid_t cur_pid = getpid();
+        pid_t cur_tid = syscall(SYS_gettid);
+        FILE* tmpFp = getLogFilePointer(cur_pid);
+        if(tmpFp == NULL){
+           fprintf(globalLog, "tmpFp in XPutImage is NULL\n");
+        }
+        fprintf(tmpFp, "PID: %d, TID: %d, intercepte glXSwapBuffer.\n", cur_pid, cur_tid);
+
 	VirtualWin *vw = NULL;
 	static Timer timer;  Timer sleepTimer;
 	static double err = 0.;  static bool first = true;
