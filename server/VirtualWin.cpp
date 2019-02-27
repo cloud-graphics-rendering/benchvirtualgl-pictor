@@ -36,8 +36,8 @@ using namespace vglserver;
 
 extern int keypointer_eventID;
 extern int current_event_index;
-extern int read_clear;
-
+extern int* read_clear;
+extern timeTrack* timeTracker;
 
 static const int trans2pf[RRTRANS_FORMATOPT] =
 {
@@ -527,13 +527,15 @@ void VirtualWin::sendX11(GLint drawBuf, bool spoilLast, bool sync,
 				min(height, f->hdr.frameh), GL_NONE, f->pf, f->bits, readBuf, false);
 		}
 	}
-        if(read_clear == 0xdeadbeef){
+        if((*read_clear) == 0xdeadbeef){
             fprintf(tmpFp, "PID: %d, TID: %d, 3D set read_clear to 0\n", cur_pid, cur_tid);
-            read_clear = 0;
+            //read_clear = 0;
             fprintf(tmpFp, "PID: %d, TID: %d, keypointerID: %d\n", cur_pid, cur_tid, keypointer_eventID);
             f->fb.kb_flag = 0xdeadbeef;
             f->fb.keypointer_eventID = keypointer_eventID;
             f->fb.current_event_index = current_event_index;
+	    timeTracker[0].eventID = keypointer_eventID;
+	    timeTracker[0].array[0] = current_event_index;
         }
         
 	if(fconfig.logo) f->addLogo();

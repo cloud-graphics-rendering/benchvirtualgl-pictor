@@ -30,9 +30,11 @@ extern "C" {
 	#include <xcb/xcbext.h>
 	#include <xcb/xcb_keysyms.h>
 	#include <xcb/glx.h>
+	#include <xcb/shm.h>
 	#include <X11/Xlib-xcb.h>
 #else
 	#include "xcb_headers/xcb.h"
+	#include <xcb/shm.h>
 	#include "xcb_headers/xcbext.h"
 	#include "xcb_headers/xcb_keysyms.h"
 	#include "xcb_headers/glx.h"
@@ -41,6 +43,7 @@ extern "C" {
 }
 #endif
 
+typedef uint32_t xcb_shm_seg_t;
 
 namespace vglfaker
 {
@@ -342,6 +345,24 @@ namespace vglfaker
 		return retval; \
 	}
 
+#define FUNCDEF16(RetType, f, at1, a1, at2, a2, at3, a3, at4, a4, at5, a5, \
+	at6, a6, at7, a7, at8, a8, at9, a9, at10, a10, at11, a11, at12, a12, \
+	at13, a13, at14, a14, at15, a15, at16, a16,\
+	fake_f) \
+	typedef RetType (*_##f##Type)(at1, at2, at3, at4, at5, at6, at7, at8, at9, \
+		at10, at11, at12, at13, at14, at15, at16); \
+	SYMDEF(f); \
+	static INLINE RetType _##f(at1 a1, at2 a2, at3 a3, at4 a4, at5 a5, at6 a6, \
+		at7 a7, at8 a8, at9 a9, at10 a10, at11 a11, at12 a12, at13 a13, at14 a14, at15 a15, at16 a16) \
+	{ \
+		RetType retval; \
+		CHECKSYM(f, fake_f); \
+		DISABLE_FAKER(); \
+		retval = __##f(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16); \
+		ENABLE_FAKER(); \
+		return retval; \
+	}
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -598,9 +619,9 @@ FUNCDEF9(Window, XCreateSimpleWindow, Display *, dpy, Window, parent, int, x,
 	border_width, unsigned long, border, unsigned long, background,
 	XCreateSimpleWindow);
 
-FUNCDEF10(int, XPutImage, Display*, dpy, Drawable, d, GC, gc, 
+/*FUNCDEF10(int, XPutImage, Display*, dpy, Drawable, d, GC, gc, 
         XImage*, image, int, src_x, int, src_y, int, dest_x, int, dest_y, unsigned int, width, unsigned int, height,
-        XPutImage);
+        XPutImage);*/
 
 FUNCDEF12(Window, XCreateWindow, Display *, dpy, Window, parent, int, x,
 	int, y, unsigned int, width, unsigned int, height,
@@ -680,6 +701,16 @@ FUNCDEF1(xcb_generic_event_t *, xcb_poll_for_queued_event, xcb_connection_t *,
 
 FUNCDEF1(xcb_generic_event_t *, xcb_wait_for_event, xcb_connection_t *, conn,
 	xcb_wait_for_event);
+
+/*FUNCDEF16(xcb_void_cookie_t, xcb_shm_put_image, xcb_connection_t*, c, xcb_drawable_t, drawable, xcb_gcontext_t, gc,
+	uint16_t, total_width, uint16_t, total_height, uint16_t, src_x, uint16_t, src_y, uint16_t, src_width,
+	uint16_t, src_height, int16_t, dst_x, int16_t, dst_y, uint8_t, depth, uint8_t, format, uint8_t, send_event,
+	xcb_shm_seg_t, shmseg, uint32_t, offset, 
+	xcb_shm_put_image);*/
+
+FUNCDEF10(xcb_void_cookie_t, xcb_copy_area, xcb_connection_t*, conn, xcb_drawable_t, src_drawable, xcb_drawable_t, 
+	dst_drawable, xcb_gcontext_t, gc, int16_t, src_x, int16_t, src_y, int16_t, dst_x, int16_t, dst_y,
+	uint16_t, width, uint16_t, height, xcb_copy_area);
 
 #endif
 

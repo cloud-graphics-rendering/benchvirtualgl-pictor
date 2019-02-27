@@ -40,7 +40,7 @@ using namespace vglutil;
 using namespace vglserver;
 
 //extern unsigned int t2p_microTime;
-extern int read_clear;
+extern int* read_clear;
 extern int current_event_index;
 extern timeTrack* timeTracker;
 #define dpy3DIsCurrent()  (_glXGetCurrentDisplay() == _dpy3D)
@@ -2144,7 +2144,7 @@ void glXSwapBuffers(Display *dpy, GLXDrawable drawable)
                 long time_tmp1 = gettime_nanoTime();
 		vw->readback(GL_BACK, false, fconfig.sync);
                 long time_tmp2 = gettime_nanoTime();
-                if(read_clear != 0){
+                if((*read_clear) != 0){
                     timeTracker[current_event_index].array[5] = time_tmp2 - time_tmp1;//nsTcopy
                 }
 		vw->swapBuffers();

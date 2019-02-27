@@ -56,6 +56,7 @@ message(STATUS "VERSION = ${VERSION}, BUILD = ${BUILD}")
 add_definitions(-D__VERSION="${VERSION}" -D__BUILD="${BUILD}"
 	-D__APPNAME="${CMAKE_PROJECT_NAME}")
 
+
 # Detect CPU type and word size
 math(EXPR BITS "${CMAKE_SIZEOF_VOID_P} * 8")
 string(TOLOWER ${CMAKE_SYSTEM_PROCESSOR} CMAKE_SYSTEM_PROCESSOR_LC)
@@ -159,6 +160,8 @@ if(MSVC)
 	# linked with the Release version of the static C library.
 	set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} /NODEFAULTLIB:LIBCMT")
 endif()
+
+add_definitions(-DFAKEXCB)
 
 # This ensures that we don't depend on libstdc++ or libgcc
 if(GNUCXX AND NOT APPLE AND NOT CYGWIN)
