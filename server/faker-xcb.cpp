@@ -19,8 +19,15 @@
 #include "faker.h"
 #include "vglconfigLauncher.h"
 
-using namespace vglserver;
+#ifndef TIME_TRACK
+#include "timetrack.h"
+#endif
 
+using namespace vglserver;
+extern int read_clear;
+extern int keypointer_eventID;
+extern int current_event_index;
+extern timeTrack* timeTracker;
 
 // This interposes enough of XCB to make Qt 5 work.  It may be necessary to
 // expand this in the future, but at the moment there is no XCB equivalent for
@@ -29,6 +36,11 @@ using namespace vglserver;
 // application think that GLX is always available and to intercept window
 // resize events.
 
+
+extern FILE *globalLog;
+
+
+extern long gettime_nanoTime(void);
 
 extern "C" {
 
@@ -233,6 +245,49 @@ xcb_generic_event_t *xcb_poll_for_event(xcb_connection_t *conn)
 	CATCH();
 
 	return e;
+}
+/*
+xcb_void_cookie_t
+xcb_shm_put_image (xcb_connection_t *c,
+                   xcb_drawable_t    drawable,
+                   xcb_gcontext_t    gc,
+                   uint16_t          total_width,
+                   uint16_t          total_height,
+                   uint16_t          src_x,
+                   uint16_t          src_y,
+                   uint16_t          src_width,
+                   uint16_t          src_height,
+                   int16_t           dst_x,
+                   int16_t           dst_y,
+                   uint8_t           depth,
+                   uint8_t           format,
+                   uint8_t           send_event,
+                   xcb_shm_seg_t     shmseg, uint32_t offset){
+	fprintf(globalLog, "xcb_shm_put_image is intercepted successfully.\n");	
+	return _xcb_shm_put_image(c, drawable, gc, total_width, total_height, src_x, src_y, src_width, src_height, dst_x, dst_y, depth, format, send_event, shmseg, offset);
+}
+*/
+xcb_void_cookie_t xcb_copy_area(xcb_connection_t *conn, 
+				xcb_drawable_t src_drawable, 
+				xcb_drawable_t dst_drawable, 
+				xcb_gcontext_t gc, 
+				int16_t src_x, 
+				int16_t src_y, 
+				int16_t dst_x, 
+				int16_t dst_y, 
+				uint16_t width, 
+				uint16_t height)
+{
+	if(read_clear == 0xdeadbeef){
+		timeTracker[0].array[0] = current_event_index;//index
+		timeTracker[0].eventID = keypointer_eventID;//ID
+		timeTracker[0].valid = 0xdeadbeef;//ID
+        	timeTracker[current_event_index].array[6] = (long)gettime_nanoTime();//nsTreq_send
+	}else{
+		fprintf(globalLog, "In xcb_copy_area, read clear is not 0xdeadbeef.\n");
+	}
+	//fprintf(globalLog, "xcb_copy_area is intercepted successfully.\n");
+	return _xcb_copy_area(conn, src_drawable, dst_drawable, gc, src_x, src_y, dst_x, dst_y, width, height);
 }
 
 

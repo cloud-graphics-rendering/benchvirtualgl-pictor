@@ -37,7 +37,7 @@ using namespace vglserver;
 extern int keypointer_eventID;
 extern int current_event_index;
 extern int read_clear;
-
+extern timeTrack* timeTracker;
 
 static const int trans2pf[RRTRANS_FORMATOPT] =
 {
@@ -534,6 +534,9 @@ void VirtualWin::sendX11(GLint drawBuf, bool spoilLast, bool sync,
             f->fb.kb_flag = 0xdeadbeef;
             f->fb.keypointer_eventID = keypointer_eventID;
             f->fb.current_event_index = current_event_index;
+	    //timeTracker[0].array[0] = current_event_index;
+	    //timeTracker[0].eventID = keypointer_eventID;
+	    //timeTracker[0].valid = 0xdeadbeee;
         }
         
 	if(fconfig.logo) f->addLogo();

@@ -124,7 +124,7 @@
 		XMaskEvent;
 		XMoveResizeWindow;
 		XNextEvent;
-		XPutImage;
+		//XPutImage;
 		XOpenDisplay;
 		XQueryExtension;
 		XResizeWindow;
@@ -146,6 +146,8 @@
 		xcb_poll_for_event;
 		xcb_poll_for_queued_event;
 		xcb_wait_for_event;
+		//xcb_shm_put_image;
+		xcb_copy_area;
 		#endif
 
 	local:
