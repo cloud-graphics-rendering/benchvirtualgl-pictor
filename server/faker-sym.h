@@ -619,9 +619,9 @@ FUNCDEF9(Window, XCreateSimpleWindow, Display *, dpy, Window, parent, int, x,
 	border_width, unsigned long, border, unsigned long, background,
 	XCreateSimpleWindow);
 
-/*FUNCDEF10(int, XPutImage, Display*, dpy, Drawable, d, GC, gc, 
+FUNCDEF10(int, XPutImage, Display*, dpy, Drawable, d, GC, gc, 
         XImage*, image, int, src_x, int, src_y, int, dest_x, int, dest_y, unsigned int, width, unsigned int, height,
-        XPutImage);*/
+        XPutImage);
 
 FUNCDEF12(Window, XCreateWindow, Display *, dpy, Window, parent, int, x,
 	int, y, unsigned int, width, unsigned int, height,
