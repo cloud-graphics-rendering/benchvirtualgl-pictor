@@ -31,6 +31,7 @@
 
 static int errorLine = -1;
 static FILE *warningFile = NULL;
+
 int timeTrackerAttached2 = 0;
 timeTrack* timeTracker2 = NULL;
 FILE * globalLog1;
@@ -602,24 +603,45 @@ int fbx_awrite(fbx_struct *fb, int srcX_, int srcY_, int dstX_, int dstY_,
         }
         if(fb->kb_flag == 0xdeadbeef){
            fb->kb_flag = 0;
-           fb->xi->data[0] = 0xde;
-           fb->xi->data[1] = 0xad;
-           fb->xi->data[2] = 0xbe;
-           fb->xi->data[3] = 0xef;
+        //if(timeTracker2[0].valid == 0xdeadbeee){
+	   timeTracker2[0].valid = 0xdeadbeef;
+           //fb->xi->data[0] = 0xde;
+           //fb->xi->data[1] = 0xad;
+           //fb->xi->data[2] = 0xbe;
+           //fb->xi->data[3] = 0xef;
 
-           fb->xi->data[4] = (fb->keypointer_eventID>>24) & 0xff;
-           fb->xi->data[5] = (fb->keypointer_eventID>>16) & 0xff;
-           fb->xi->data[6] = (fb->keypointer_eventID>> 8) & 0xff;
-           fb->xi->data[7] = (fb->keypointer_eventID)     & 0xff;
+           //fb->xi->data[4] = (fb->keypointer_eventID>>24) & 0xff;
+           //fb->xi->data[5] = (fb->keypointer_eventID>>16) & 0xff;
+           //fb->xi->data[6] = (fb->keypointer_eventID>> 8) & 0xff;
+           //fb->xi->data[7] = (fb->keypointer_eventID)     & 0xff;
 
-           if(timeTracker2[fb->current_event_index].eventID == fb->keypointer_eventID){
+	   //int index = timeTracker2[0].array[0];
+           //if(timeTracker2[index].eventID == timeTracker2[0].eventID){
+           if((timeTracker2[fb->current_event_index].eventID == fb->keypointer_eventID) && timeTracker2[fb->current_event_index].valid){
+              timeTracker2[0].valid = 0xdeadbeef;//nsTreq_send
+              timeTracker2[0].eventID = fb->keypointer_eventID;//nsTreq_send
+              timeTracker2[0].array[0] = fb->current_event_index;//nsTreq_send
+              //fprintf(stderr, "Handling:%d\n", timeTracker2[0].eventID);
+              fprintf(stderr, "Handling:%d\n", fb->keypointer_eventID);
+              //timeTracker2[index].array[6] = (long)gettime_nanoTime();//nsTreq_send
+              timeTracker2[fb->current_event_index].array[6] = (long)gettime_nanoTime();//nsTreq_send
+           }
+           else{
+              //timeTracker2[index].valid = 0;//the index-ed row is invalid
+              //timeTracker2[0].valid = 0;//the first row is invalid
+              timeTracker2[fb->current_event_index].valid = 0;//nsTreq_send
+              timeTracker2[0].valid = 0;//nsTreq_send
+              fprintf(stderr, "Fatal: Bad Match..handling:%d\n", index);
+           }
+
+           /*if(timeTracker2[fb->current_event_index].eventID == fb->keypointer_eventID){
               fprintf(stderr, "Handling:%d\n", fb->keypointer_eventID);
               timeTracker2[fb->current_event_index].array[6] = (long)gettime_nanoTime();//nsTreq_send
            }
            else{
               timeTracker2[fb->current_event_index].valid = 0;//nsTreq_send
               fprintf(stderr, "Fatal: Bad Match..handling:%d\n", fb->keypointer_eventID);
-           }
+           }*/
            //int i=0;
            //for(i=0;i<NUM_ROW;i++)
            //   fprintf(stderr, "eventID: %d\n", timeTracker2[i].eventID);

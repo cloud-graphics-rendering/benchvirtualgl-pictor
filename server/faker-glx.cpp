@@ -32,17 +32,17 @@
 #include <sys/types.h>
 #include <sys/syscall.h>
 
-#ifndef TIME_TRACK
-#include "timetrack.h"
-#endif
+//#ifndef TIME_TRACK
+//#include "timetrack.h"
+//#endif
 
 using namespace vglutil;
 using namespace vglserver;
 
 //extern unsigned int t2p_microTime;
-extern int* read_clear;
-extern int current_event_index;
-extern timeTrack* timeTracker;
+//extern timeTrack* timeTracker;
+//extern int current_event_index;
+//extern int* read_clear;
 #define dpy3DIsCurrent()  (_glXGetCurrentDisplay() == _dpy3D)
 
 extern FILE *globalLog;
@@ -2141,12 +2141,13 @@ void glXSwapBuffers(Display *dpy, GLXDrawable drawable)
 	fconfig.flushdelay = 0.;
 	if(winhash.find(dpy, drawable, vw))
 	{
-                long time_tmp1 = gettime_nanoTime();
+                //long time_tmp1 = gettime_nanoTime();
 		vw->readback(GL_BACK, false, fconfig.sync);
-                long time_tmp2 = gettime_nanoTime();
-                if((*read_clear) != 0){
-                    timeTracker[current_event_index].array[5] = time_tmp2 - time_tmp1;//nsTcopy
-                }
+                //long time_tmp2 = gettime_nanoTime();
+                //if((*read_clear) == 0xdeadbeef){
+                //    timeTracker[current_event_index].array[5] = time_tmp2 - time_tmp1;//nsTcopy
+		//    (*read_clear) = 0xdeadbeee;
+                //}
 		vw->swapBuffers();
 		int interval = vw->getSwapInterval();
 		if(interval > 0)

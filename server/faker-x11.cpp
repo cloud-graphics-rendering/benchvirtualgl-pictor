@@ -39,7 +39,11 @@
 timeTrack* timeTracker = NULL;
 int timeTrackerAttached = 0;
 int current_event_index = 1;
+int read_clear = 0;
+int keypointer_eventID = 0;
+extern long gettime_nanoTime();
 #endif
+
 struct fd_pair *headerfd;
 double lastMouseXPos = 649;
 double lastMouseYPos = 481;
@@ -64,10 +68,6 @@ using namespace vglserver;
 
 // Interposed X11 functions
 
-int *read_clear = NULL;
-int keypointer_eventID = 0;
-
-extern long gettime_nanoTime();
 
 FILE* getLogFilePointer(pid_t cur_pid){
      struct fd_pair *tmpfd = headerfd;
@@ -835,11 +835,11 @@ int XNextEvent(Display *dpy, XEvent *xe)
             int shmid = shmget(key, NUM_ROW * sizeof(timeTrack), 0666|IPC_CREAT);
             timeTracker = (timeTrack*) shmat(shmid, (void*)0, 0);
             timeTrackerAttached = 1;
-	    read_clear = &(timeTracker[0].valid);
-	    *read_clear = 0;
+	    //read_clear = &(timeTracker[0].valid);
+	    read_clear = 0;
         }
-	fprintf(tmpFp,"PID: %d, TID: %d, 111111 event type: %d, read_clear: %x\n", cur_pid, cur_tid, xe->type, *read_clear);
-	if((xe->type == KeyPress || xe->type == 6) && (*read_clear) == 0){
+	fprintf(tmpFp,"PID: %d, TID: %d, 111111 event type: %d, read_clear: %x\n", cur_pid, cur_tid, xe->type, read_clear);
+	if((xe->type == KeyPress || xe->type == 6) && read_clear == 0){
 	    fprintf(tmpFp,"PID: %d, TID: %d, 2222 motion or keypress: x:%d, y:%d, rootx:%d, rooty:%d\n", cur_pid, cur_tid, xe->xmotion.x, xe->xmotion.y, xe->xmotion.x_root, xe->xmotion.y_root);
 	    fprintf(tmpFp,"PID: %d, TID: %d, 3333 event type: %d\n", cur_pid, cur_tid, xe->type);
             XKeyEvent* xkey = (XKeyEvent*)xe;
@@ -851,7 +851,7 @@ int XNextEvent(Display *dpy, XEvent *xe)
                   break;
                }
             }
-	    *read_clear = 0xdeadbeef;
+	    read_clear = 0xdeadbeef;
         }
 	handleEvent(dpy, xe);
 

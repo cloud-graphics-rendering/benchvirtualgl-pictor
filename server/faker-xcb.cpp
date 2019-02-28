@@ -24,7 +24,8 @@
 #endif
 
 using namespace vglserver;
-extern int* read_clear;
+extern int read_clear;
+extern int keypointer_eventID;
 extern int current_event_index;
 extern timeTrack* timeTracker;
 
@@ -277,12 +278,15 @@ xcb_void_cookie_t xcb_copy_area(xcb_connection_t *conn,
 				uint16_t width, 
 				uint16_t height)
 {
-	if(*read_clear!= 0){
+	if(read_clear == 0xdeadbeef){
 		timeTracker[0].array[0] = current_event_index;//index
-		timeTracker[0].eventID = timeTracker[current_event_index].eventID;//ID
+		timeTracker[0].eventID = keypointer_eventID;//ID
+		timeTracker[0].valid = 0xdeadbeef;//ID
+        	timeTracker[current_event_index].array[6] = (long)gettime_nanoTime();//nsTreq_send
+	}else{
+		fprintf(globalLog, "In xcb_copy_area, read clear is not 0xdeadbeef.\n");
 	}
 	//fprintf(globalLog, "xcb_copy_area is intercepted successfully.\n");
-        timeTracker[current_event_index].array[6] = (long)gettime_nanoTime();//nsTreq_send
 	return _xcb_copy_area(conn, src_drawable, dst_drawable, gc, src_x, src_y, dst_x, dst_y, width, height);
 }
 
