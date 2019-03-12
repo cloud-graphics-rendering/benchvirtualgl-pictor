@@ -34,7 +34,7 @@ extern "C" {
 	#include <X11/Xlib-xcb.h>
 #else
 	#include "xcb_headers/xcb.h"
-	#include <xcb/shm.h>
+	//#include <xcb/shm.h>
 	#include "xcb_headers/xcbext.h"
 	#include "xcb_headers/xcb_keysyms.h"
 	#include "xcb_headers/glx.h"

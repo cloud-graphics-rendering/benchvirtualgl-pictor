@@ -48,7 +48,7 @@ sudo cp /opt/libjpeg-turbo.64 /opt/libjpeg-turbo -rf
 sudo apt-get install libxv-dev libxtst-dev libglu1-mesa-dev
 
 # launch VNC session
-~/Documents/workspace/benchvnc-build/bin/vncserver -kill :1
-~/Documents/workspace/benchvnc-build/bin/vncserver -3dwm
-~/Documents/workspace/benchvnc-build/bin/vncviewer 127.0.0.1:5901
+#~/Documents/workspace/benchvnc-build/bin/vncserver -kill :1
+#~/Documents/workspace/benchvnc-build/bin/vncserver -3dwm
+#~/Documents/workspace/benchvnc-build/bin/vncviewer 127.0.0.1:5901
 
