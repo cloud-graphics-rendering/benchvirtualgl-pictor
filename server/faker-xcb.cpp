@@ -40,7 +40,7 @@ extern timeTrack* timeTracker;
 extern FILE *globalLog;
 
 
-extern long gettime_nanoTime(void);
+extern unsigned long gettime_nanoTime(void);
 
 extern "C" {
 
@@ -279,14 +279,28 @@ xcb_void_cookie_t xcb_copy_area(xcb_connection_t *conn,
 				uint16_t height)
 {
 	if(read_clear == 0xdeadbeef){
-		timeTracker[0].array[0] = current_event_index;//index
-		timeTracker[0].eventID = keypointer_eventID;//ID
-		timeTracker[0].valid = 0xdeadbeef;//ID
-        	timeTracker[current_event_index].array[6] = (long)gettime_nanoTime();//nsTreq_send
+            /*int i=1;
+            for(i=1;i<NUM_ROW;i++){
+                if(timeTracker[i].eventID == keypointer_eventID){
+                   current_event_index = i;
+                   break;
+                }
+            }*/
+            if((timeTracker[current_event_index].eventID == keypointer_eventID) && timeTracker[current_event_index].valid){
+                fprintf(stderr, "Handling:%d\n", keypointer_eventID);
+                timeTracker[0].valid = 0xdeadbeef;//save valid field
+                timeTracker[0].eventID = keypointer_eventID;//save current ID.
+                timeTracker[0].array[0] = current_event_index;//save index
+                timeTracker[current_event_index].array[6] = (unsigned long)gettime_nanoTime();//nsTreq_send
+            }else{
+                fprintf(stderr, "Fatal: Multiple Events come into game before xcb_copy_area was called:%d\n", keypointer_eventID);
+                timeTracker[current_event_index].valid = 0;
+            }
+            read_clear = 0;
 	}else{
-		fprintf(globalLog, "In xcb_copy_area, read clear is not 0xdeadbeef.\n");
+            ;fprintf(globalLog, "In xcb_copy_area, read clear is not 0xdeadbeef.\n");
+            //timeTracker[0].valid = 0;//save valid field
 	}
-	//fprintf(globalLog, "xcb_copy_area is intercepted successfully.\n");
 	return _xcb_copy_area(conn, src_drawable, dst_drawable, gc, src_x, src_y, dst_x, dst_y, width, height);
 }
 

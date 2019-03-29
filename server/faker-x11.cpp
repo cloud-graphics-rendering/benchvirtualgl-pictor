@@ -41,7 +41,7 @@ int timeTrackerAttached = 0;
 int current_event_index = 1;
 int read_clear = 0;
 int keypointer_eventID = 0;
-extern long gettime_nanoTime();
+extern unsigned long gettime_nanoTime();
 #endif
 
 struct fd_pair *headerfd;
@@ -838,21 +838,29 @@ int XNextEvent(Display *dpy, XEvent *xe)
 	    //read_clear = &(timeTracker[0].valid);
 	    read_clear = 0;
         }
+        //timeTracker[0].array[5] = (unsigned long)tmpFp;
 	fprintf(tmpFp,"PID: %d, TID: %d, 111111 event type: %d, read_clear: %x\n", cur_pid, cur_tid, xe->type, read_clear);
-	if((xe->type == KeyPress || xe->type == 6) && read_clear == 0){
-	    fprintf(tmpFp,"PID: %d, TID: %d, 2222 motion or keypress: x:%d, y:%d, rootx:%d, rooty:%d\n", cur_pid, cur_tid, xe->xmotion.x, xe->xmotion.y, xe->xmotion.x_root, xe->xmotion.y_root);
-	    fprintf(tmpFp,"PID: %d, TID: %d, 3333 event type: %d\n", cur_pid, cur_tid, xe->type);
+	if(xe->type == KeyPress || xe->type == KeyRelease || xe->type == 6){
             XKeyEvent* xkey = (XKeyEvent*)xe;
             keypointer_eventID = xkey->time;
             for(i=1;i<NUM_ROW;i++){
                if(timeTracker[i].eventID == keypointer_eventID){
-                  timeTracker[i].array[4] = (long)gettime_nanoTime();//usTevent_pickup
+                  timeTracker[i].array[4] = (unsigned long)gettime_nanoTime();//usTevent_pickup
+                  fprintf(tmpFp, "XNext: nanoTime2: %lu\n",timeTracker[i].array[4]);
                   current_event_index = i;
+                  fprintf(tmpFp, "XNext: ID: %ld, 0: %lu, 1: %lu, 4: %lu\n",keypointer_eventID, timeTracker[i].array[0], timeTracker[i].array[1], timeTracker[i].array[4]);
                   break;
                }
             }
 	    read_clear = 0xdeadbeef;
+        }else{
+            read_clear = 0;
         }
+	/*if((xe->type == KeyPress || xe->type == KeyRelease || xe->type == 6) && read_clear == 0){
+	    fprintf(tmpFp,"PID: %d, TID: %d, 2222 motion or keypress: x:%d, y:%d, rootx:%d, rooty:%d\n", cur_pid, cur_tid, xe->xmotion.x, xe->xmotion.y, xe->xmotion.x_root, xe->xmotion.y_root);
+	    fprintf(tmpFp,"PID: %d, TID: %d, 3333 event type: %d\n", cur_pid, cur_tid, xe->type);
+	    read_clear = 0xdeadbeef;
+        }*/
 	handleEvent(dpy, xe);
 
 	//CATCH();
@@ -878,19 +886,31 @@ int XPutImage(Display *dpy, Drawable d, GC gc, XImage *image, int src_x, int src
            //image->data[5] = (keypointer_eventID>>16) & 0xff;
            //image->data[6] = (keypointer_eventID>> 8) & 0xff;
            //image->data[7] = (keypointer_eventID)     & 0xff;
+           /*int i=1;
+           for(i=1;i<NUM_ROW;i++){
+               if(timeTracker[i].eventID == keypointer_eventID){
+                  current_event_index = i;
+                  break;
+               }
+           }*/
 
+           //if(current_event_index < NUM_ROW &&(timeTracker[current_event_index].eventID == keypointer_eventID) && timeTracker[current_event_index].valid){
            if((timeTracker[current_event_index].eventID == keypointer_eventID) && timeTracker[current_event_index].valid){
               fprintf(tmpFp, "PID: %d, TID: %d, Handling:%d\n", cur_pid, cur_tid, keypointer_eventID);
               timeTracker[0].valid = 0xdeadbeef;//save valid field
               timeTracker[0].eventID = keypointer_eventID;//save current ID.
               timeTracker[0].array[0] = current_event_index;//save index
-              timeTracker[current_event_index].array[6] = (long)gettime_nanoTime();//nsTreq_send
+              timeTracker[current_event_index].array[6] = (unsigned long)gettime_nanoTime();//nsTreq_send
            }else{
-              fprintf(tmpFp, "PID: %d, TID: %d, Fatal: Bad Match..handling:%d\n", cur_pid, cur_tid, keypointer_eventID);
+              fprintf(tmpFp, "PID: %d, TID: %d, Fatal: Multiple Events come into game before XPutImage was called:%d\n", cur_pid, cur_tid, keypointer_eventID);
+              //fprintf(tmpFp, "PID: %d, TID: %d, Fatal: Multiple Events come into game before XPutImage was called:%d\n", cur_pid, cur_tid, keypointer_eventID);
               timeTracker[current_event_index].valid = 0;
            }
-           fprintf(tmpFp, "PID:%d, TID: %d, 2D XPutImage set read_clear to 0\n", cur_pid, cur_tid);
+           //fprintf(tmpFp, "PID:%d, TID: %d, 2D XPutImage set read_clear to 0\n", cur_pid, cur_tid);
            read_clear = 0;
+       }else{
+            //timeTracker[0].valid = 0;//save valid field
+            ;//fprintf(globalLog, "In XPutImage, read clear is not 0xdeadbeef.\n");
        }
        return _XPutImage(dpy, d, gc, image, src_x, src_y, dest_x, dest_y, width, height);
 }

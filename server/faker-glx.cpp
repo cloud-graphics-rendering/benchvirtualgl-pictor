@@ -80,7 +80,7 @@ extern FILE* getLogFilePointer(pid_t cur_pid);
     return(__tv.tv_usec);
 }*/
 
-long gettime_nanoTime(void)
+unsigned long gettime_nanoTime(void)
 {
     struct timespec __tv;
     clock_gettime(CLOCK_MONOTONIC,&__tv);

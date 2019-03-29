@@ -619,32 +619,18 @@ int fbx_awrite(fbx_struct *fb, int srcX_, int srcY_, int dstX_, int dstY_,
            if((timeTracker2[fb->current_event_index].eventID == fb->keypointer_eventID) && timeTracker2[fb->current_event_index].valid){
               timeTracker2[0].eventID = fb->keypointer_eventID;//nsTreq_send
               timeTracker2[0].array[0] = fb->current_event_index;//nsTreq_send
-              //fprintf(stderr, "Handling:%d\n", timeTracker2[0].eventID);
-              fprintf(stderr, "Handling:%d\n", fb->keypointer_eventID);
-              //timeTracker2[index].array[6] = (long)gettime_nanoTime();//nsTreq_send
-              timeTracker2[fb->current_event_index].array[6] = (long)gettime_nanoTime();//nsTreq_send
+              fprintf(stderr, "Handling:%d\n", timeTracker2[0].eventID);
+              timeTracker2[fb->current_event_index].array[6] = (unsigned long)gettime_nanoTime();//nsTreq_send
               timeTracker2[0].valid = 0xdeadbeef;//nsTreq_send
-           }
-           else{
-              //timeTracker2[index].valid = 0;//the index-ed row is invalid
-              //timeTracker2[0].valid = 0;//the first row is invalid
+              fprintf(stderr, "fbx: ID: %ld, [0]: %lu, [1]: %lu, [4]: %lu, [6]: %lu\n",fb->keypointer_eventID, timeTracker2[fb->current_event_index].array[0], timeTracker2[fb->current_event_index].array[1], timeTracker2[fb->current_event_index].array[4], timeTracker2[fb->current_event_index].array[6]);
+           }else{
               timeTracker2[fb->current_event_index].valid = 0;//nsTreq_send
               timeTracker2[0].valid = 0;//nsTreq_send
-              fprintf(stderr, "Fatal: Bad Match..handling:%d\n", index);
+              fprintf(stderr, "Fatal: Bad Match..handling:%d, in fbx_awrite\n", index);
            }
            fb->kb_flag = 0;
-
-           /*if(timeTracker2[fb->current_event_index].eventID == fb->keypointer_eventID){
-              fprintf(stderr, "Handling:%d\n", fb->keypointer_eventID);
-              timeTracker2[fb->current_event_index].array[6] = (long)gettime_nanoTime();//nsTreq_send
-           }
-           else{
-              timeTracker2[fb->current_event_index].valid = 0;//nsTreq_send
-              fprintf(stderr, "Fatal: Bad Match..handling:%d\n", fb->keypointer_eventID);
-           }*/
-           //int i=0;
-           //for(i=0;i<NUM_ROW;i++)
-           //   fprintf(stderr, "eventID: %d\n", timeTracker2[i].eventID);
+        }else{
+              ;//timeTracker2[0].valid = 0;//nsTreq_send
         }
 	#ifdef USESHM
 	if(fb->shm)

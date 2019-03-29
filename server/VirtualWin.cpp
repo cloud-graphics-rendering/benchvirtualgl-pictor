@@ -528,15 +528,38 @@ void VirtualWin::sendX11(GLint drawBuf, bool spoilLast, bool sync,
 		}
 	}
         if(read_clear == 0xdeadbeef){
-            fprintf(tmpFp, "PID: %d, TID: %d, 3D set read_clear to 0\n", cur_pid, cur_tid);
+        //if(read_clear == 0xdeadbeef && timeTracker[0].array[4] == 0){
+            /*int i=1;
+            for(i=1;i<NUM_ROW;i++){
+                if(timeTracker[i].eventID == keypointer_eventID){
+                   current_event_index = i;
+                   break;
+                }
+            }*/
+            //if(current_event_index < NUM_ROW && (timeTracker[current_event_index].eventID == keypointer_eventID) && timeTracker[current_event_index].valid){
+            if((timeTracker[current_event_index].eventID == keypointer_eventID) && timeTracker[current_event_index].valid){
+                fprintf(tmpFp, "Handling:%d\n", keypointer_eventID);
+                //timeTracker[0].valid = 0xdeadbeef;//save valid field
+                //timeTracker[0].eventID = keypointer_eventID;//save current ID.
+                //timeTracker[0].array[0] = current_event_index;//save index
+                //timeTracker[current_event_index].array[6] = (long)gettime_nanoTime();//nsTreq_send
+                f->fb.kb_flag = 0xdeadbeef;
+                //timeTracker[0].array[4] = 0xdeadbeef;
+                f->fb.keypointer_eventID = keypointer_eventID;
+                f->fb.current_event_index = current_event_index;
+                fprintf(tmpFp, "SendX11: ID: %ld, 0: %lu, 1: %lu, 4: %lu\n",keypointer_eventID, timeTracker[current_event_index].array[0], timeTracker[current_event_index].array[1], timeTracker[current_event_index].array[4]);
+            }else{
+                f->fb.kb_flag = 0;
+                fprintf(tmpFp, "Fatal: Multiple Events come into game before sendX11 was called:%d, %d,%d, valid:%d\n",current_event_index,timeTracker[current_event_index].eventID, keypointer_eventID, timeTracker[current_event_index].valid);
+                timeTracker[current_event_index].valid = 0;
+            }
             read_clear = 0;
-            fprintf(tmpFp, "PID: %d, TID: %d, keypointerID: %d\n", cur_pid, cur_tid, keypointer_eventID);
-            f->fb.kb_flag = 0xdeadbeef;
-            f->fb.keypointer_eventID = keypointer_eventID;
-            f->fb.current_event_index = current_event_index;
 	    //timeTracker[0].array[0] = current_event_index;
 	    //timeTracker[0].eventID = keypointer_eventID;
 	    //timeTracker[0].valid = 0xdeadbeee;
+        }else{
+            f->fb.kb_flag = 0;
+            read_clear = 0;
         }
         
 	if(fconfig.logo) f->addLogo();
