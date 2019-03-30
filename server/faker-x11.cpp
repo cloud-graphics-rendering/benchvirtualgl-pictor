@@ -840,7 +840,7 @@ int XNextEvent(Display *dpy, XEvent *xe)
 	if(xe->type == KeyPress || xe->type == KeyRelease || xe->type == 6){
             XKeyEvent* xkey = (XKeyEvent*)xe;
             keypointer_eventID = xkey->time;
-	    fprintf(stderr,"PID: %d, TID: %d, ID: %d, 111111 event type: %d, read_clear: %x\n", cur_pid, cur_tid, keypointer_eventID ,xe->type, read_clear);
+	    fprintf(stderr,"PID: %d, TID: %d, ID: %d, 111111 event type: %d, read_clear: %x, %x, %x, addr:%p\n", cur_pid, cur_tid, keypointer_eventID ,xe->type, read_clear, timeTracker[0].array[8], timeTracker[0].array[9], timeTracker);
 	    //fprintf(tmpFp,"PID: %d, TID: %d, 111111 event type: %d, read_clear: %x\n", cur_pid, cur_tid, xe->type, read_clear);
             for(i=1;i<NUM_ROW;i++){
                if(timeTracker[i].eventID == keypointer_eventID){
