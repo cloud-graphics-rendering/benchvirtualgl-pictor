@@ -12,7 +12,7 @@
 typedef struct timeTrack{
     int eventID;
     int valid;
-    unsigned long array[TIME_COLUM];
+    unsigned int array[TIME_COLUM];
 }timeTrack;
 
 struct fd_pair{

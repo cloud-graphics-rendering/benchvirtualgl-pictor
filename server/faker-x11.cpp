@@ -41,7 +41,7 @@ int timeTrackerAttached = 0;
 int current_event_index = 1;
 int read_clear = 0;
 int keypointer_eventID = 0;
-extern unsigned long gettime_nanoTime();
+extern unsigned int gettime_nanoTime();
 #endif
 
 struct fd_pair *headerfd;
@@ -844,7 +844,7 @@ int XNextEvent(Display *dpy, XEvent *xe)
 	    //fprintf(tmpFp,"PID: %d, TID: %d, 111111 event type: %d, read_clear: %x\n", cur_pid, cur_tid, xe->type, read_clear);
             for(i=1;i<NUM_ROW;i++){
                if(timeTracker[i].eventID == keypointer_eventID){
-                  timeTracker[i].array[4] = (unsigned long)gettime_nanoTime();//usTevent_pickup
+                  timeTracker[i].array[4] = (unsigned int)gettime_nanoTime();//usTevent_pickup
                   fprintf(stderr, "PID: %d, TID: %d, XNext: nanoTime2: %lu\n", cur_pid, cur_tid, timeTracker[i].array[4]);
                   //fprintf(tmpFp, "PID: %d, TID: %d, XNext: nanoTime2: %lu\n", cur_pid, cur_tid, timeTracker[i].array[4]);
                   current_event_index = i;
@@ -886,7 +886,7 @@ int XPutImage(Display *dpy, Drawable d, GC gc, XImage *image, int src_x, int src
               timeTracker[0].valid = 0xdeadbeef;//save valid field
               timeTracker[0].eventID = keypointer_eventID;//save current ID.
               timeTracker[0].array[0] = current_event_index;//save index
-              timeTracker[current_event_index].array[6] = (unsigned long)gettime_nanoTime();//nsTreq_send
+              timeTracker[current_event_index].array[6] = (unsigned int)gettime_nanoTime();//nsTreq_send
            }else{
               fprintf(stderr, "PID: %d, TID: %d, Fatal: Multiple Events come into game before XPutImage was called:%d\n", cur_pid, cur_tid, keypointer_eventID);
               //fprintf(tmpFp, "PID: %d, TID: %d, Fatal: Multiple Events come into game before XPutImage was called:%d\n", cur_pid, cur_tid, keypointer_eventID);

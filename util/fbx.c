@@ -623,7 +623,7 @@ int fbx_awrite(fbx_struct *fb, int srcX_, int srcY_, int dstX_, int dstY_,
               timeTracker2[0].eventID = fb->keypointer_eventID;//nsTreq_send
               timeTracker2[0].array[0] = fb->current_event_index;//nsTreq_send
               fprintf(stderr, "PID: %d, TID: %d, fbx Handling:%d\n", cur_pid, cur_tid, timeTracker2[0].eventID);
-              timeTracker2[fb->current_event_index].array[6] = (unsigned long)gettime_nanoTime();//nsTreq_send
+              timeTracker2[fb->current_event_index].array[6] = (unsigned int)gettime_nanoTime();//nsTreq_send
               timeTracker2[0].valid = 0xdeadbeef;//nsTreq_send
               fprintf(stderr, "PID: %d, TID: %d, fbx: ID: %ld, [0]: %lu, [1]: %lu, [4]: %lu, [6]: %lu\n", cur_pid, cur_tid, fb->keypointer_eventID, timeTracker2[fb->current_event_index].array[0], timeTracker2[fb->current_event_index].array[1], timeTracker2[fb->current_event_index].array[4], timeTracker2[fb->current_event_index].array[6]);
            }else{

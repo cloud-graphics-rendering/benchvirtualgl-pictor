@@ -15,15 +15,15 @@
 typedef struct timeTrack{
     int eventID;
     int valid;
-    unsigned long array[TIME_COLUM];
+    unsigned int array[TIME_COLUM];
 }timeTrack;
 
-unsigned long gettime_nanoTime(void)
+unsigned int gettime_nanoTime(void)
 {
     struct timespec __tv;
     clock_gettime(CLOCK_MONOTONIC,&__tv);
     //clock_gettime(CLOCK_REALTIME,&__tv);
-    return(__tv.tv_sec * 1e9 + __tv.tv_nsec);
+    return(unsigned int)(__tv.tv_sec * 1e9 + __tv.tv_nsec);
 }
 
 

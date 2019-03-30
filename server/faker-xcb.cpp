@@ -40,7 +40,7 @@ extern timeTrack* timeTracker;
 extern FILE *globalLog;
 
 
-extern unsigned long gettime_nanoTime(void);
+extern unsigned int gettime_nanoTime(void);
 
 extern "C" {
 
@@ -279,19 +279,12 @@ xcb_void_cookie_t xcb_copy_area(xcb_connection_t *conn,
 				uint16_t height)
 {
 	if(read_clear == 0xdeadbeef){
-            /*int i=1;
-            for(i=1;i<NUM_ROW;i++){
-                if(timeTracker[i].eventID == keypointer_eventID){
-                   current_event_index = i;
-                   break;
-                }
-            }*/
             if((timeTracker[current_event_index].eventID == keypointer_eventID) && timeTracker[current_event_index].valid){
                 fprintf(stderr, "Handling:%d\n", keypointer_eventID);
                 timeTracker[0].valid = 0xdeadbeef;//save valid field
                 timeTracker[0].eventID = keypointer_eventID;//save current ID.
                 timeTracker[0].array[0] = current_event_index;//save index
-                timeTracker[current_event_index].array[6] = (unsigned long)gettime_nanoTime();//nsTreq_send
+                timeTracker[current_event_index].array[6] = (unsigned int)gettime_nanoTime();//nsTreq_send
             }else{
                 fprintf(stderr, "Fatal: Multiple Events come into game before xcb_copy_area was called:%d\n", keypointer_eventID);
                 timeTracker[current_event_index].valid = 0;
