@@ -35,14 +35,49 @@ static FILE *warningFile = NULL;
 
 int timeTrackerAttached2 = 0;
 timeTrack* timeTracker2 = NULL;
-FILE * globalLog1;
 unsigned int gettime_microPart(void)
 {
     struct timeval __tv;
     gettimeofday(&__tv, (struct timezone *)NULL);
     return(__tv.tv_usec);
 }
+/*
 struct fd_pair *headerfd;
+FILE* getLogFilePointer(pid_t cur_pid){
+     struct fd_pair *tmpfd = headerfd;
+     struct fd_pair *lstfd = NULL;
+     int try_find = 0;
+
+     char str1[10];
+     char logpath[80] ={'/','t','m','p','/','v','g','l','/'};
+
+     while(tmpfd!=NULL){
+         if(tmpfd->pid != cur_pid){
+             lstfd = tmpfd;
+             tmpfd = tmpfd->next;
+             try_find = 1;
+         }else{
+             return tmpfd->fd;
+         }
+     }
+     if(tmpfd == NULL){
+          tmpfd = (struct fd_pair*)malloc(sizeof(struct fd_pair));
+          tmpfd->pid = cur_pid;
+          sprintf(str1, "%d", cur_pid);
+          strcat(logpath, str1);
+          tmpfd->fd = fopen(logpath, "ab+");
+          //fprintf(globalLog, "logpath:%s, fd: %p\n", logpath, tmpfd->fd);
+          tmpfd->status = 1;
+          tmpfd->next = NULL;
+          if(try_find == 0){
+             headerfd = tmpfd;
+          }else{
+             lstfd->next = tmpfd;
+          }
+          return (tmpfd->fd!=NULL)?tmpfd->fd:NULL;
+     }
+}
+*/
 
 #if defined(_WIN32)
 
@@ -573,54 +608,17 @@ int fbx_flip(fbx_struct *fb, int x_, int y_, int width_, int height_)
 	if(tmpbuf) free(tmpbuf);
 	return -1;
 }
-
-FILE* getLogFilePointer(pid_t cur_pid){
-     struct fd_pair *tmpfd = headerfd;
-     struct fd_pair *lstfd = NULL;
-     int try_find = 0;
-
-     char str1[10];
-     char logpath[80] ={'/','t','m','p','/','v','g','l','/'};
-
-     while(tmpfd!=NULL){
-         if(tmpfd->pid != cur_pid){
-             lstfd = tmpfd;
-             tmpfd = tmpfd->next;
-             try_find = 1;
-         }else{
-             return tmpfd->fd;
-         }
-     }
-     if(tmpfd == NULL){
-          tmpfd = (struct fd_pair*)malloc(sizeof(struct fd_pair));
-          tmpfd->pid = cur_pid;
-          sprintf(str1, "%d", cur_pid);
-          strcat(logpath, str1);
-          tmpfd->fd = fopen(logpath, "ab+");
-          //fprintf(globalLog, "logpath:%s, fd: %p\n", logpath, tmpfd->fd);
-          tmpfd->status = 1;
-          tmpfd->next = NULL;
-          if(try_find == 0){
-             headerfd = tmpfd;
-          }else{
-             lstfd->next = tmpfd;
-          }
-          return (tmpfd->fd!=NULL)?tmpfd->fd:NULL;
-     }
-}
-
 #ifndef _WIN32
 
 int fbx_awrite(fbx_struct *fb, int srcX_, int srcY_, int dstX_, int dstY_,
 	int width_, int height_)
 {
-        //globalLog1 = fopen("/tmp/Virtalgl1.log","rw");
-        pid_t cur_pid = getpid();
-        pid_t cur_tid = syscall(SYS_gettid);
-        FILE* tmpFp = getLogFilePointer(cur_pid);
-        if(tmpFp == NULL){
-           fprintf(stderr, "tmpFp in fbx_awrite is NULL\n");
-        }
+        //pid_t cur_pid = getpid();
+        //pid_t cur_tid = syscall(SYS_gettid);
+        //FILE* tmpFp = getLogFilePointer(cur_pid);
+        //if(tmpFp == NULL){
+        //   fprintf(stderr, "tmpFp in fbx_awrite is NULL\n");
+        //}
 	int srcX, srcY, dstX, dstY, width, height;
         
 	if(!fb) _throw("Invalid argument");
@@ -645,33 +643,19 @@ int fbx_awrite(fbx_struct *fb, int srcX_, int srcY_, int dstX_, int dstY_,
         }
         
         if(fb->kb_flag == 0xdeadbeef){
-        //if(timeTracker2[0].valid == 0xdeadbeee){
-	   //timeTracker2[0].valid = 0xdeadbeef;
-           //fb->xi->data[0] = 0xde;
-           //fb->xi->data[1] = 0xad;
-           //fb->xi->data[2] = 0xbe;
-           //fb->xi->data[3] = 0xef;
-
-           //fb->xi->data[4] = (fb->keypointer_eventID>>24) & 0xff;
-           //fb->xi->data[5] = (fb->keypointer_eventID>>16) & 0xff;
-           //fb->xi->data[6] = (fb->keypointer_eventID>> 8) & 0xff;
-           //fb->xi->data[7] = (fb->keypointer_eventID)     & 0xff;
-
-	   //int index = timeTracker2[0].array[0];
-           //if(timeTracker2[index].eventID == timeTracker2[0].eventID){
            if((timeTracker2[fb->current_event_index].eventID == fb->keypointer_eventID) && timeTracker2[fb->current_event_index].valid){
               timeTracker2[0].eventID = fb->keypointer_eventID;//nsTreq_send
               timeTracker2[0].array[0] = fb->current_event_index;//nsTreq_send
-              fprintf(tmpFp, "PID: %d, TID: %d, fbx Handling:%d\n", cur_pid, cur_tid, timeTracker2[0].eventID);
+              //fprintf(tmpFp, "PID: %d, TID: %d, fbx Handling:%d\n", cur_pid, cur_tid, timeTracker2[0].eventID);
               //fprintf(stderr, "PID: %d, TID: %d, fbx Handling:%d\n", cur_pid, cur_tid, timeTracker2[0].eventID);
               timeTracker2[fb->current_event_index].array[6] = (unsigned int)gettime_nanoTime();//nsTreq_send
               timeTracker2[0].valid = 0xdeadbeef;//nsTreq_send
-              fprintf(tmpFp, "PID: %d, TID: %d, fbx: ID: %ld, [0]: %lu, [1]: %lu, [4]: %lu, [6]: %lu\n", cur_pid, cur_tid, fb->keypointer_eventID, timeTracker2[fb->current_event_index].array[0], timeTracker2[fb->current_event_index].array[1], timeTracker2[fb->current_event_index].array[4], timeTracker2[fb->current_event_index].array[6]);
+              //fprintf(tmpFp, "PID: %d, TID: %d, fbx: ID: %ld, [0]: %lu, [1]: %lu, [4]: %lu, [6]: %lu\n", cur_pid, cur_tid, fb->keypointer_eventID, timeTracker2[fb->current_event_index].array[0], timeTracker2[fb->current_event_index].array[1], timeTracker2[fb->current_event_index].array[4], timeTracker2[fb->current_event_index].array[6]);
               //fprintf(stderr, "PID: %d, TID: %d, fbx: ID: %ld, [0]: %lu, [1]: %lu, [4]: %lu, [6]: %lu\n", cur_pid, cur_tid, fb->keypointer_eventID, timeTracker2[fb->current_event_index].array[0], timeTracker2[fb->current_event_index].array[1], timeTracker2[fb->current_event_index].array[4], timeTracker2[fb->current_event_index].array[6]);
            }else{
               timeTracker2[fb->current_event_index].valid = 0;//nsTreq_send
               timeTracker2[0].valid = 0;//nsTreq_send
-              fprintf(tmpFp, "Fatal: Bad Match..handling:%d, in fbx_awrite\n", index);
+              //fprintf(tmpFp, "Fatal: Bad Match..handling:%d, in fbx_awrite\n", index);
               //fprintf(stderr, "Fatal: Bad Match..handling:%d, in fbx_awrite\n", index);
            }
            fb->kb_flag = 0;
@@ -696,7 +680,6 @@ int fbx_awrite(fbx_struct *fb, int srcX_, int srcY_, int dstX_, int dstY_,
 		XPutImage(fb->wh.dpy, draw, fb->xgc, fb->xi, srcX, srcY, dstX, dstY, width,
 			height);
 	}
-        //fclose(globalLog1);
 	return 0;
 
 	finally:

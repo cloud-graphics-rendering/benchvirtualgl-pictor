@@ -291,7 +291,7 @@ xcb_void_cookie_t xcb_copy_area(xcb_connection_t *conn,
             }
             read_clear = 0;
 	}else{
-            ;fprintf(globalLog, "In xcb_copy_area, read clear is not 0xdeadbeef.\n");
+            fprintf(globalLog, "In xcb_copy_area, read clear is not 0xdeadbeef.\n");
             //timeTracker[0].valid = 0;//save valid field
 	}
 	return _xcb_copy_area(conn, src_drawable, dst_drawable, gc, src_x, src_y, dst_x, dst_y, width, height);

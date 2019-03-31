@@ -837,8 +837,8 @@ int XNextEvent(Display *dpy, XEvent *xe)
             timeTrackerAttached = 1;
 	    read_clear = 0;
         }
-	if(xe->type == KeyPress || xe->type == KeyRelease || xe->type == 6){
-            XKeyEvent* xkey = (XKeyEvent*)xe;
+        XKeyEvent* xkey = (XKeyEvent*)xe;
+	if((xe->type == KeyPress || xe->type == 6) && read_clear == 0 && (xkey->time != keypointer_eventID)){
             keypointer_eventID = xkey->time;
 	    fprintf(tmpFp,"PID: %d, TID: %d, ID: %d, 111111 event type: %d, read_clear: %x, [8]:%x, [9]:%x, addr:%p, size:%d\n", cur_pid, cur_tid, keypointer_eventID ,xe->type, read_clear, timeTracker[0].array[8], timeTracker[0].array[9], timeTracker,NUM_ROW * sizeof(timeTrack));
 	    //fprintf(stderr,"PID: %d, TID: %d, ID: %d, 111111 event type: %d, read_clear: %x, [8]:%x, [9]:%x, addr:%p, size:%d\n", cur_pid, cur_tid, keypointer_eventID ,xe->type, read_clear, timeTracker[0].array[8], timeTracker[0].array[9], timeTracker,NUM_ROW * sizeof(timeTrack));
@@ -846,9 +846,9 @@ int XNextEvent(Display *dpy, XEvent *xe)
             for(i=1;i<NUM_ROW;i++){
                if(timeTracker[i].eventID == keypointer_eventID){
                   timeTracker[i].array[4] = (unsigned int)gettime_nanoTime();//usTevent_pickup
-                  __sync_synchronize();
+                  //__sync_synchronize();
                   //fprintf(stderr, "PID: %d, TID: %d, XNext: nanoTime2: %lu\n", cur_pid, cur_tid, timeTracker[i].array[4]);
-                  fprintf(tmpFp, "PID: %d, TID: %d, XNext: nanoTime2: %lu\n", cur_pid, cur_tid, timeTracker[i].array[4]);
+                  fprintf(tmpFp, "PID: %d, TID: %d, XNext: index: %d, nanoTime2: %lu\n", cur_pid, cur_tid, i ,timeTracker[i].array[4]);
                   current_event_index = i;
                   //fprintf(stderr, "PID: %d, TID: %d, XNext: ID: %ld, index: %d, 0: %lu, 1: %lu, 4: %lu\n",cur_pid, cur_tid, keypointer_eventID, i, timeTracker[i].array[0], timeTracker[i].array[1], timeTracker[i].array[4]);
                   fprintf(tmpFp, "PID: %d, TID: %d, XNext: ID: %ld, 0: %lu, 1: %lu, 4: %lu\n",cur_pid, cur_tid, keypointer_eventID, timeTracker[i].array[0], timeTracker[i].array[1], timeTracker[i].array[4]);

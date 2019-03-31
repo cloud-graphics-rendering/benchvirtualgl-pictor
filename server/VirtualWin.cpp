@@ -25,15 +25,13 @@
 #include <sys/syscall.h>
 #include "timetrack.h"
 
-extern FILE *globalLog;
-
-extern struct fd_pair *headerfd;
-extern FILE* getLogFilePointer(pid_t cur_pid);
-
 using namespace vglutil;
 using namespace vglcommon;
 using namespace vglserver;
 
+extern FILE *globalLog;
+extern struct fd_pair *headerfd;
+extern FILE* getLogFilePointer(pid_t cur_pid);
 extern int keypointer_eventID;
 extern int current_event_index;
 extern int read_clear;
@@ -492,12 +490,12 @@ void VirtualWin::sendVGL(GLint drawBuf, bool spoilLast, bool doStereo,
 void VirtualWin::sendX11(GLint drawBuf, bool spoilLast, bool sync,
 	bool doStereo, int stereoMode)
 {
-        pid_t cur_pid = getpid();
+        /*pid_t cur_pid = getpid();
         pid_t cur_tid = syscall(SYS_gettid);
         FILE* tmpFp = getLogFilePointer(cur_pid);
         if(tmpFp == NULL){
            fprintf(globalLog, "tmpFp in sendX11 is NULL\n");
-        }
+        }*/
 
 	int width = oglDraw->getWidth(), height = oglDraw->getHeight();
 
@@ -530,15 +528,15 @@ void VirtualWin::sendX11(GLint drawBuf, bool spoilLast, bool sync,
         if(read_clear == 0xdeadbeef){
             if((timeTracker[current_event_index].eventID == keypointer_eventID) && timeTracker[current_event_index].valid){
                 //fprintf(stderr, "PID: %d, TID: %d, SendX11 Handling:%d\n", cur_pid, cur_tid, keypointer_eventID);
-                fprintf(tmpFp, "PID: %d, TID: %d, SendX11 Handling:%d\n", cur_pid, cur_tid, keypointer_eventID);
+                //fprintf(tmpFp, "PID: %d, TID: %d, SendX11 Handling:%d\n", cur_pid, cur_tid, keypointer_eventID);
                 f->fb.kb_flag = 0xdeadbeef;
                 f->fb.keypointer_eventID = keypointer_eventID;
                 f->fb.current_event_index = current_event_index;
                 //fprintf(stderr, "PID: %d, TID: %d, SendX11: ID: %ld, 0: %lu, 1: %lu, 4: %lu\n",cur_pid, cur_tid, keypointer_eventID, timeTracker[current_event_index].array[0], timeTracker[current_event_index].array[1], timeTracker[current_event_index].array[4]);
-                fprintf(tmpFp, "PID: %d, TID: %d, SendX11: ID: %ld, 0: %lu, 1: %lu, 4: %lu\n",cur_pid, cur_tid, keypointer_eventID, timeTracker[current_event_index].array[0], timeTracker[current_event_index].array[1], timeTracker[current_event_index].array[4]);
+                //fprintf(tmpFp, "PID: %d, TID: %d, SendX11: ID: %ld, 0: %lu, 1: %lu, 4: %lu\n",cur_pid, cur_tid, keypointer_eventID, timeTracker[current_event_index].array[0], timeTracker[current_event_index].array[1], timeTracker[current_event_index].array[4]);
             }else{
                 f->fb.kb_flag = 0;
-                fprintf(tmpFp, "PID: %d, TID: %d, SendX11 Fatal: Multiple Events come into game before sendX11 was called:index:%d, IDinarray:%d, ID:%d, valid:%d\n",cur_pid, cur_tid, current_event_index,timeTracker[current_event_index].eventID, keypointer_eventID, timeTracker[current_event_index].valid);
+                //fprintf(tmpFp, "PID: %d, TID: %d, SendX11 Fatal: Multiple Events come into game before sendX11 was called:index:%d, IDinarray:%d, ID:%d, valid:%d\n",cur_pid, cur_tid, current_event_index,timeTracker[current_event_index].eventID, keypointer_eventID, timeTracker[current_event_index].valid);
                 //fprintf(stderr, "PID: %d, TID: %d, SendX11 Fatal: Multiple Events come into game before sendX11 was called:index:%d, IDinarray:%d, ID:%d, valid:%d\n",cur_pid, cur_tid, current_event_index,timeTracker[current_event_index].eventID, keypointer_eventID, timeTracker[current_event_index].valid);
                 timeTracker[current_event_index].valid = 0;
             }
