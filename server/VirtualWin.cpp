@@ -30,7 +30,6 @@ using namespace vglcommon;
 using namespace vglserver;
 
 extern FILE *globalLog;
-extern struct fd_pair *headerfd;
 extern FILE* getLogFilePointer(pid_t cur_pid);
 extern int keypointer_eventID;
 extern int current_event_index;

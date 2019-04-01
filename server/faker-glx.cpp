@@ -32,22 +32,20 @@
 #include <sys/types.h>
 #include <sys/syscall.h>
 
-//#ifndef TIME_TRACK
-//#include "timetrack.h"
-//#endif
+#ifndef TIME_TRACK
+#include "timetrack.h"
+#endif
+extern timeTrack* timeTracker;
+extern int current_event_index;
+extern int read_clear;
+extern FILE *globalLog;
+//extern struct fd_pair *headerfd;
+extern FILE* getLogFilePointer(pid_t cur_pid);
 
 using namespace vglutil;
 using namespace vglserver;
 
-//extern unsigned int t2p_microTime;
-//extern timeTrack* timeTracker;
-//extern int current_event_index;
-//extern int* read_clear;
 #define dpy3DIsCurrent()  (_glXGetCurrentDisplay() == _dpy3D)
-
-extern FILE *globalLog;
-extern struct fd_pair *headerfd;
-extern FILE* getLogFilePointer(pid_t cur_pid);
 
 // This emulates the behavior of the nVidia drivers
 #define VGL_MAX_SWAP_INTERVAL  8
@@ -2129,6 +2127,7 @@ void glXSwapBuffers(Display *dpy, GLXDrawable drawable)
 	static double err = 0.;  static bool first = true;
 
 	TRY();
+        unsigned int time_tmp1 = gettime_nanoTime();
 
 	if(isExcluded(dpy) || winhash.isOverlay(dpy, drawable))
 	{
@@ -2141,13 +2140,7 @@ void glXSwapBuffers(Display *dpy, GLXDrawable drawable)
 	fconfig.flushdelay = 0.;
 	if(winhash.find(dpy, drawable, vw))
 	{
-                //long time_tmp1 = gettime_nanoTime();
 		vw->readback(GL_BACK, false, fconfig.sync);
-                //long time_tmp2 = gettime_nanoTime();
-                //if((*read_clear) == 0xdeadbeef){
-                //    timeTracker[current_event_index].array[5] = time_tmp2 - time_tmp1;//nsTcopy
-		//    (*read_clear) = 0xdeadbeee;
-                //}
 		vw->swapBuffers();
 		int interval = vw->getSwapInterval();
 		if(interval > 0)
@@ -2174,6 +2167,10 @@ void glXSwapBuffers(Display *dpy, GLXDrawable drawable)
 		stoptrace();  if(vw) { prargx(vw->getGLXDrawable()); }
 		closetrace();
 
+        unsigned int time_tmp2 = gettime_nanoTime();
+        if(read_clear == 0xdeadbeef){
+            timeTracker[current_event_index].array[5] = time_tmp2 - time_tmp1;//nsTcopy
+        }
 	CATCH();
 }
 
