@@ -42,7 +42,7 @@ extern FILE* getLogFilePointer(pid_t cur_pid);
 extern FILE *globalLog;
 
 
-extern unsigned int gettime_nanoTime(void);
+extern long long gettime_nanoTime(void);
 
 extern "C" {
 
@@ -291,8 +291,8 @@ xcb_void_cookie_t xcb_copy_area(xcb_connection_t *conn,
                 timeTracker[0].valid = 0xdeadbeef;//save valid field
                 timeTracker[0].eventID = keypointer_eventID;//save current ID.
                 timeTracker[0].array[0] = current_event_index;//save index
-                timeTracker[current_event_index].array[6] = (unsigned int)gettime_nanoTime();//nsTreq_send
-                fprintf(tmpFp, "PID: %d, TID: %d, xcb HandlingID: %d, index: %d, [4]:%u, [6]:%u\n",cur_pid, cur_tid, keypointer_eventID, current_event_index, timeTracker[current_event_index].array[4],timeTracker[current_event_index].array[6]);
+                timeTracker[current_event_index].array[6] = (long long)gettime_nanoTime();//nsTreq_send
+                fprintf(tmpFp, "PID: %d, TID: %d, xcb HandlingID: %d, index: %d, [4]:%llu, [6]:%llu\n",cur_pid, cur_tid, keypointer_eventID, current_event_index, timeTracker[current_event_index].array[4],timeTracker[current_event_index].array[6]);
             }else{
                 fprintf(tmpFp, "PID: %d, TID: %d, Fatal: Multiple Events come into game before xcb_copy_area was called, ID: %d, index: %d\n",cur_pid, cur_tid, keypointer_eventID, current_event_index);
                 timeTracker[current_event_index].valid = 0;
