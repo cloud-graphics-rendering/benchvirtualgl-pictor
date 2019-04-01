@@ -895,10 +895,12 @@ int XPutImage(Display *dpy, Drawable d, GC gc, XImage *image, int src_x, int src
               //fprintf(stderr, "PID: %d, TID: %d, Fatal: Multiple Events come into game before XPutImage was called:%d\n", cur_pid, cur_tid, keypointer_eventID);
               fprintf(tmpFp, "PID: %d, TID: %d, Fatal: Multiple Events come into game before XPutImage was called:%d\n", cur_pid, cur_tid, keypointer_eventID);
               timeTracker[current_event_index].valid = 0;
+              timeTracker[0].valid = 0;//nsTreq_send
            }
            read_clear = 0;
        }else{
             fprintf(tmpFp, "In XPutImage, read clear is not 0xdeadbeef. PID:%d, TID: %d, ID: %d\n", cur_pid, cur_tid, keypointer_eventID);
+            //timeTracker[0].valid = 0;//nsTreq_send
        }
        return _XPutImage(dpy, d, gc, image, src_x, src_y, dest_x, dest_y, width, height);
 }
