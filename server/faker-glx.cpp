@@ -78,12 +78,12 @@ using namespace vglserver;
     return(__tv.tv_usec);
 }*/
 
-unsigned int gettime_nanoTime(void)
+long long gettime_nanoTime(void)
 {
     struct timespec __tv;
     clock_gettime(CLOCK_MONOTONIC,&__tv);
     //clock_gettime(CLOCK_REALTIME,&__tv);
-    return(unsigned int)(__tv.tv_sec * 1e9 + __tv.tv_nsec);
+    return(long long)(__tv.tv_sec * 1e9 + __tv.tv_nsec);
 }
 
 static GLXFBConfig matchConfig(Display *dpy, XVisualInfo *vis,
@@ -2127,7 +2127,7 @@ void glXSwapBuffers(Display *dpy, GLXDrawable drawable)
 	static double err = 0.;  static bool first = true;
 
 	TRY();
-        unsigned int time_tmp1 = gettime_nanoTime();
+        long long time_tmp1 = gettime_nanoTime();
 
 	if(isExcluded(dpy) || winhash.isOverlay(dpy, drawable))
 	{
@@ -2167,7 +2167,7 @@ void glXSwapBuffers(Display *dpy, GLXDrawable drawable)
 		stoptrace();  if(vw) { prargx(vw->getGLXDrawable()); }
 		closetrace();
 
-        unsigned int time_tmp2 = gettime_nanoTime();
+        long long time_tmp2 = gettime_nanoTime();
         if(read_clear == 0xdeadbeef){
             timeTracker[current_event_index].array[5] = time_tmp2 - time_tmp1;//nsTcopy
         }
