@@ -830,15 +830,33 @@ int XNextEvent(Display *dpy, XEvent *xe)
             lastMouseXPos = tmp1;
             lastMouseYPos = tmp2;
         }
-
+        //key_t key;
+        //char* filename=NULL;
         if(!timeTrackerAttached){
-            key_t key = ftok("shmfile",65);
+            char hostname[256];
+            char *home = getenv("HOME");
+            char *vncfolder = "/.vnc/";
+            gethostname(hostname, sizeof(hostname));
+            char *num_string = getenv("DISPLAY");
+            char *posfix = ".pid";
+            //filename = (char*)malloc(strlen(posfix) + strlen(num_string)+strlen(hostname)+strlen(vncfolder)+strlen(home)+16); // +1 for the null-terminator
+            char *filename = (char*)malloc(strlen(posfix) + strlen(num_string)+strlen(hostname)+strlen(vncfolder)+strlen(home)+16); // +1 for the null-terminator
+            strcpy(filename, home);
+            strcat(filename, vncfolder);
+            strcat(filename, hostname);
+            strcat(filename, num_string);
+            strcat(filename, posfix);
+            key_t key = ftok(filename, 65);
+            key = ftok(filename, 65);
+
             int shmid = shmget(key, NUM_ROW * sizeof(timeTrack), 0666|IPC_CREAT);
             timeTracker = (timeTrack*) shmat(shmid, (void*)0, 0);
             timeTrackerAttached = 1;
 	    read_clear = 0;
         }
         XKeyEvent* xkey = (XKeyEvent*)xe;
+        //if(filename != NULL)
+	//    fprintf(stderr,"filename: %s, key:%d\n", filename, key);
 	//if((xe->type == KeyPress || xe->type == 6) && read_clear == 0 && (xkey->time != keypointer_eventID)){
 	if((xe->type == KeyPress || xe->type == 6) && (xkey->time != keypointer_eventID)){
             keypointer_eventID = xkey->time;

@@ -635,13 +635,33 @@ int fbx_awrite(fbx_struct *fb, int srcX_, int srcY_, int dstX_, int dstY_,
 	if(!fb->wh.dpy || !fb->wh.d || !fb->xi || !fb->bits)
 		_throw("Not initialized");
 
+	//key_t key;
+        //char *filename = NULL; // +1 for the null-terminator
         if(!timeTrackerAttached2){
-           key_t key = ftok("shmfile",65);
+           char hostname[256];
+           char *home = getenv("HOME");
+           char *vncfolder = "/.vnc/";
+           gethostname(hostname, sizeof(hostname));
+           char *num_string = getenv("DISPLAY");
+           char *posfix = ".pid";
+           char *filename = (char*)malloc(strlen(posfix) + strlen(num_string)+strlen(hostname)+strlen(vncfolder)+strlen(home)+16); // +1 for the null-terminator
+           filename = (char*)malloc(strlen(posfix) + strlen(num_string)+strlen(hostname)+strlen(vncfolder)+strlen(home)+16); // +1 for the null-terminator
+           strcpy(filename, home);
+           strcat(filename, vncfolder);
+           strcat(filename, hostname);
+           strcat(filename, num_string);
+           strcat(filename, posfix);
+	   //key_t key = ftok(filename, 65);
+	   key_t key = ftok(filename, 65);
+           //key_t key = ftok("shmfile", 65);
+
            int shmid = shmget(key, NUM_ROW * sizeof(timeTrack), 0666|IPC_CREAT);
            timeTracker2 = (timeTrack*) shmat(shmid, (void*)0, 0);
            timeTrackerAttached2 = 1;
         }
-        
+        //if(filename != NULL){
+        //    fprintf(stderr, "filename: %s, key:%d\n", filename, key);
+        //}
         if(fb->kb_flag == 0xdeadbeef){
            if((timeTracker2[fb->current_event_index].eventID == fb->keypointer_eventID) && timeTracker2[fb->current_event_index].valid){
               timeTracker2[0].eventID = fb->keypointer_eventID;//nsTreq_send
