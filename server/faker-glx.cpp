@@ -2114,14 +2114,14 @@ void glXSelectEventSGIX(Display *dpy, GLXDrawable drawable, unsigned long mask)
 
 void glXSwapBuffers(Display *dpy, GLXDrawable drawable)
 {
-        /*pid_t cur_pid = getpid();
+        pid_t cur_pid = getpid();
         pid_t cur_tid = syscall(SYS_gettid);
         FILE* tmpFp = getLogFilePointer(cur_pid);
         if(tmpFp == NULL){
            fprintf(globalLog, "tmpFp in XPutImage is NULL\n");
         }
-        fprintf(tmpFp, "PID: %d, TID: %d, intercepte glXSwapBuffer.\n", cur_pid, cur_tid);
-        */
+        fprintf(tmpFp, "PID%d, TID%d, intercepteglXSwapBuffer,%lld\n", cur_pid, cur_tid, gettime_nanoTime());
+        
 	VirtualWin *vw = NULL;
 	static Timer timer;  Timer sleepTimer;
 	static double err = 0.;  static bool first = true;
