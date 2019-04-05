@@ -280,6 +280,7 @@ xcb_void_cookie_t xcb_copy_area(xcb_connection_t *conn,
 				uint16_t width, 
 				uint16_t height)
 {
+        xcb_void_cookie_t tmp_xcb_cookie = _xcb_copy_area(conn, src_drawable, dst_drawable, gc, src_x, src_y, dst_x, dst_y, width, height);
         /*pid_t cur_pid = getpid();
         pid_t cur_tid = syscall(SYS_gettid);
         FILE* tmpFp = getLogFilePointer(cur_pid);
@@ -303,7 +304,7 @@ xcb_void_cookie_t xcb_copy_area(xcb_connection_t *conn,
             //fprintf(tmpFp, "PID: %d, TID: %d, In xcb_copy_area, read clear is not 0xdeadbeef. ID:%d, index:%d\n", cur_pid, cur_tid, keypointer_eventID, current_event_index);
             timeTracker[0].valid = 0;//save valid field
 	}
-	return _xcb_copy_area(conn, src_drawable, dst_drawable, gc, src_x, src_y, dst_x, dst_y, width, height);
+	return tmp_xcb_cookie;
 }
 
 

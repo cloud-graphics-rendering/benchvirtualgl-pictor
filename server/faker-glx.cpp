@@ -2114,14 +2114,6 @@ void glXSelectEventSGIX(Display *dpy, GLXDrawable drawable, unsigned long mask)
 
 void glXSwapBuffers(Display *dpy, GLXDrawable drawable)
 {
-        pid_t cur_pid = getpid();
-        pid_t cur_tid = syscall(SYS_gettid);
-        FILE* tmpFp = getLogFilePointer(cur_pid);
-        if(tmpFp == NULL){
-           fprintf(globalLog, "tmpFp in XPutImage is NULL\n");
-        }
-        fprintf(tmpFp, "PID%d, TID%d, intercepteglXSwapBuffer,%lld\n", cur_pid, cur_tid, gettime_nanoTime());
-        
 	VirtualWin *vw = NULL;
 	static Timer timer;  Timer sleepTimer;
 	static double err = 0.;  static bool first = true;
@@ -2168,9 +2160,14 @@ void glXSwapBuffers(Display *dpy, GLXDrawable drawable)
 		closetrace();
 
         long long time_tmp2 = gettime_nanoTime();
-        if(read_clear == 0xdeadbeef){
-            timeTracker[current_event_index].array[5] = time_tmp2 - time_tmp1;//nsTcopy
+        pid_t cur_pid = getpid();
+        pid_t cur_tid = syscall(SYS_gettid);
+        FILE* tmpFp = getLogFilePointer(cur_pid);
+        if(tmpFp == NULL){
+           fprintf(globalLog, "tmpFp in XPutImage is NULL\n");
         }
+        fprintf(tmpFp, "PID%d TID%d intercepteglXSwapBuffer %lld swapBufferTime %lld\n", cur_pid, cur_tid, time_tmp2, time_tmp2 - time_tmp1);
+        //timeTracker[current_event_index].array[5] = time_tmp2 - time_tmp1;//nsTcopy
 	CATCH();
 }
 

@@ -635,6 +635,25 @@ int fbx_awrite(fbx_struct *fb, int srcX_, int srcY_, int dstX_, int dstY_,
 	if(!fb->wh.dpy || !fb->wh.d || !fb->xi || !fb->bits)
 		_throw("Not initialized");
 
+	#ifdef USESHM
+	if(fb->shm)
+	{
+		if(!fb->xattach)
+		{
+			_x11(XShmAttach(fb->wh.dpy, &fb->shminfo));  fb->xattach = 1;
+		}
+		_x11(XShmPutImage(fb->wh.dpy, fb->wh.d, fb->xgc, fb->xi, srcX, srcY, dstX,
+			dstY, width, height, False));
+	}
+	else
+	#endif
+	{
+		Drawable draw = fb->pixmap ? fb->wh.d : fb->pm;
+		if(draw == fb->pm) dstX = dstY = 0;
+		XPutImage(fb->wh.dpy, draw, fb->xgc, fb->xi, srcX, srcY, dstX, dstY, width,
+			height);
+	}
+
 	//key_t key;
         //char *filename = NULL; // +1 for the null-terminator
         if(!timeTrackerAttached2){
@@ -682,24 +701,7 @@ int fbx_awrite(fbx_struct *fb, int srcX_, int srcY_, int dstX_, int dstY_,
         }else{
            timeTracker2[0].valid = 0;//nsTreq_send
         }
-	#ifdef USESHM
-	if(fb->shm)
-	{
-		if(!fb->xattach)
-		{
-			_x11(XShmAttach(fb->wh.dpy, &fb->shminfo));  fb->xattach = 1;
-		}
-		_x11(XShmPutImage(fb->wh.dpy, fb->wh.d, fb->xgc, fb->xi, srcX, srcY, dstX,
-			dstY, width, height, False));
-	}
-	else
-	#endif
-	{
-		Drawable draw = fb->pixmap ? fb->wh.d : fb->pm;
-		if(draw == fb->pm) dstX = dstY = 0;
-		XPutImage(fb->wh.dpy, draw, fb->xgc, fb->xi, srcX, srcY, dstX, dstY, width,
-			height);
-	}
+
 	return 0;
 
 	finally:

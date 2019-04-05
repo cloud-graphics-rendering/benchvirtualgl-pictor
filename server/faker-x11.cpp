@@ -893,6 +893,7 @@ int XNextEvent(Display *dpy, XEvent *xe)
 }
 
 int XPutImage(Display *dpy, Drawable d, GC gc, XImage *image, int src_x, int src_y, int dest_x, int dest_y, unsigned int width, unsigned int height){
+       int xputimage_value = _XPutImage(dpy, d, gc, image, src_x, src_y, dest_x, dest_y, width, height);
        /*pid_t cur_pid = getpid();
        pid_t cur_tid = syscall(SYS_gettid);
        FILE* tmpFp = getLogFilePointer(cur_pid);
@@ -920,7 +921,7 @@ int XPutImage(Display *dpy, Drawable d, GC gc, XImage *image, int src_x, int src
             ///fprintf(tmpFp, "In XPutImage, read clear is not 0xdeadbeef. PID:%d, TID: %d, ID: %d\n", cur_pid, cur_tid, keypointer_eventID);
             //timeTracker[0].valid = 0;//nsTreq_send
        }
-       return _XPutImage(dpy, d, gc, image, src_x, src_y, dest_x, dest_y, width, height);
+       return xputimage_value;
 }
 
 int XResizeWindow(Display *dpy, Window win, unsigned int width,
