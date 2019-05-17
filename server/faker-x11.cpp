@@ -780,8 +780,8 @@ int XNextEvent(Display *dpy, XEvent *xe)
 	XEvent *event;
 	double vals2[2] = {-1, -1};
 	//TRY();
-
-        /*pid_t cur_pid = getpid();
+        /*
+        pid_t cur_pid = getpid();
         pid_t cur_tid = syscall(SYS_gettid);
         FILE* tmpFp = getLogFilePointer(cur_pid);
         if(tmpFp == NULL){
@@ -805,7 +805,9 @@ int XNextEvent(Display *dpy, XEvent *xe)
 	}
         UnlockDisplay(dpy);
 	retval = _XNextEvent(dpy, xe);
-        if(xe->type == 6 && xe->xmotion.x == 640 && xe->xmotion.y == 480){
+	//fprintf(tmpFp,"PID: %d, TID: %d, 111111 event type: %d, xmotion.x: %d, xmotion.y: %d\n", cur_pid, cur_tid, xe->type, xe->xmotion.x, xe->xmotion.y);
+        //if(xe->type == 6 && xe->xmotion.x == 640 && xe->xmotion.y == 480){
+        if(xe->type == 6 && xe->xmotion.x == 960 && xe->xmotion.y == 540){
             if(InGameStatus == 0){
                    InGameThreashold++;
                 if(InGameThreashold > 10){
@@ -823,8 +825,10 @@ int XNextEvent(Display *dpy, XEvent *xe)
             }
             int tmp1 = xe->xmotion.x;
             int tmp2 = xe->xmotion.y;
-            xe->xmotion.x = xe->xmotion.x - lastMouseXPos + 640;
-            xe->xmotion.y = xe->xmotion.y - lastMouseYPos + 480;
+            //xe->xmotion.x = xe->xmotion.x - lastMouseXPos + 640;
+            //xe->xmotion.y = xe->xmotion.y - lastMouseYPos + 480;
+            xe->xmotion.x = xe->xmotion.x - lastMouseXPos + 960;
+            xe->xmotion.y = xe->xmotion.y - lastMouseYPos + 540;
             xe->xmotion.x_root = xe->xmotion.x;
             xe->xmotion.y_root = xe->xmotion.y;
             lastMouseXPos = tmp1;
