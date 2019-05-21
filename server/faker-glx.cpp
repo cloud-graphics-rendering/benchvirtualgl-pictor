@@ -2166,7 +2166,7 @@ void glXSwapBuffers(Display *dpy, GLXDrawable drawable)
         if(tmpFp == NULL){
            fprintf(globalLog, "tmpFp in XPutImage is NULL\n");
         }
-        fprintf(tmpFp, "PID%d TID%d intercepteglXSwapBuffer %lld swapBufferTime %lld\n", cur_pid, cur_tid, time_tmp2, time_tmp2 - time_tmp1);
+        fprintf(tmpFp, "PID%d TID%d intercepteglXSwapBuffer %lf swapBufferTime %lf\n", cur_pid, cur_tid, time_tmp2/1000000.0, (time_tmp2 - time_tmp1)/1000000.0);
         //timeTracker[current_event_index].array[5] = time_tmp2 - time_tmp1;//nsTcopy
 	CATCH();
 }
