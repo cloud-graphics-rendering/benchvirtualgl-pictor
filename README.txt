@@ -51,3 +51,6 @@ $ sudo vglserver_config
 
 Choose 1
 Then, N,N,N,X
+
+Attention: we have scripts that describes how to compile 64 bit and 32 bit at the same time. But, we encourage you to use 64 bits
+virtualGL, because all of our benchmarks are 64 bits.
