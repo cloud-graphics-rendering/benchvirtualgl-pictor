@@ -101,6 +101,7 @@ foreach(fakerlib ${VGL_FAKER_NAME} ${VGL_FAKER_NAME}-nodl)
 	endif()
 	target_link_libraries(${fakerlib} vglcommon ${FBXFAKERLIB} vglsocket m
 		${LIBDL})
+        target_link_libraries(${fakerlib} GL)
 	if(${fakerlib} STREQUAL ${VGL_FAKER_NAME})
 		target_link_libraries(${fakerlib} ${OPENGL_gl_LIBRARY})
 	endif()

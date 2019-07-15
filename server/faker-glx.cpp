@@ -14,10 +14,12 @@
  */
 
 #include <string.h>
+#include <unistd.h>
 #include <limits.h>
 #include "Error.h"
 #include "vglutil.h"
 #define GLX_GLXEXT_PROTOTYPES
+#define GL_GLEXT_PROTOTYPES
 #include "ConfigHash.h"
 #include "ContextHash.h"
 #include "GLXDrawableHash.h"
@@ -31,6 +33,7 @@
 #include "glxvisual.h"
 #include <sys/types.h>
 #include <sys/syscall.h>
+#include <GL/glut.h>
 
 #ifndef TIME_TRACK
 #include "timetrack.h"
@@ -41,6 +44,15 @@ extern int read_clear;
 extern FILE *globalLog;
 //extern struct fd_pair *headerfd;
 extern FILE* getLogFilePointer(pid_t cur_pid);
+
+#ifndef GL_ARB_timer_query
+#define GL_TIME_ELAPSED 0x88BF
+#define GL_TIMESTAMP 0x8E28
+#endif
+GLint query_available = 0;
+GLuint m_iTimeQuery;
+int first_flag = 1;
+long long last_time_tmp1 = 0;
 
 using namespace vglutil;
 using namespace vglserver;
@@ -2119,29 +2131,79 @@ void glXSwapBuffers(Display *dpy, GLXDrawable drawable)
 	static double err = 0.;  static bool first = true;
 
 	TRY();
-        long long time_tmp1 = gettime_nanoTime();
+        //double value_good = 1;
+        int read_back_flag = 0;
+        long long time_tmp0 = 0;
+        long long time_tmp1 = 0;
+        long long time_tmp2 = 0;
+        GLuint64 timeElapsed = 0;
+        pid_t cur_pid = getpid();
+        pid_t cur_tid = syscall(SYS_gettid);
+        FILE* tmpFp = getLogFilePointer(cur_pid);
+        if(tmpFp == NULL){
+           fprintf(globalLog, "tmpFp in XPutImage is NULL\n");
+        }
 
 	if(isExcluded(dpy) || winhash.isOverlay(dpy, drawable))
 	{
 		_glXSwapBuffers(dpy, drawable);
+        fprintf(tmpFp, "*PID%d TID%d intercepteglXSwapBuffer %lf swapBufferTime %lf, read_back_flag: %d, read_back_time: %lf\n", cur_pid, cur_tid, time_tmp1/1000000.0, (timeElapsed)/1000000.0, read_back_flag, (time_tmp1-time_tmp0)/1000000.0);
 		return;
 	}
 
-		opentrace(glXSwapBuffers);  prargd(dpy);  prargx(drawable);  starttrace();
+	opentrace(glXSwapBuffers);  prargd(dpy);  prargx(drawable);  starttrace();
 
 	fconfig.flushdelay = 0.;
-	if(winhash.find(dpy, drawable, vw))
-	{
+	if(winhash.find(dpy, drawable, vw)){
+                read_back_flag = 1;
+                time_tmp0 = gettime_nanoTime();
 		vw->readback(GL_BACK, false, fconfig.sync);
+                time_tmp1 = gettime_nanoTime();
+                 
+                if(first_flag == 1){
+                    first_flag = 2;
+                    query_available = 0;
+                    glGenQueries(1, &m_iTimeQuery);
+                    glBeginQuery(GL_TIME_ELAPSED, m_iTimeQuery);
+                }else{
+                    glEndQuery(GL_TIME_ELAPSED);
+                    while(!query_available){
+                         glGetQueryObjectiv(m_iTimeQuery, GL_QUERY_RESULT_AVAILABLE, &query_available);
+                    }
+                    glGetQueryObjectui64v(m_iTimeQuery, GL_QUERY_RESULT, &timeElapsed);
+                    glDeleteQueries(1,&m_iTimeQuery);
+                    
+                    query_available = 0;
+                    glGenQueries(1, &m_iTimeQuery);
+                    glBeginQuery(GL_TIME_ELAPSED, m_iTimeQuery);
+                }
+                //int iii=0;int jjj=0;
+                //for(iii=0;iii<10000;iii++)
+                //   for(jjj=0;jjj<10000;jjj++)
+                //     value_good = (10000*iii+jjj/10000)/value_good;
+                //-----------------------------
+                /*GLuint m_iTimeQuery;
+                GLint available = 0;
+                glGenQueries(1, &m_iTimeQuery);
+                glBeginQuery(GL_TIME_ELAPSED, m_iTimeQuery);*/
+                //-----------------------------                
 		vw->swapBuffers();
-		int interval = vw->getSwapInterval();
-		if(interval > 0)
+                //-----------------------------
+                /*glEndQuery(GL_TIME_ELAPSED);
+                while(!available){
+                     glGetQueryObjectiv(m_iTimeQuery, GL_QUERY_RESULT_AVAILABLE, &available);
+                }
+                glGetQueryObjectui64v(m_iTimeQuery, GL_QUERY_RESULT, &timeElapsed);
+                glDeleteQueries(1,&m_iTimeQuery);*/
+
+		int interval_swp = vw->getSwapInterval();
+		if(interval_swp > 0)
 		{
 			double elapsed = timer.elapsed();
 			if(first) first = false;
 			else
 			{
-				double fps = fconfig.refreshrate / (double)interval;
+				double fps = fconfig.refreshrate / (double)interval_swp;
 				if(fps > 0.0 && elapsed < 1. / fps)
 				{
 					sleepTimer.start();
@@ -2153,21 +2215,16 @@ void glXSwapBuffers(Display *dpy, GLXDrawable drawable)
 			}
 			timer.start();
 		}
-	}
-	else _glXSwapBuffers(_dpy3D, drawable);
-
-		stoptrace();  if(vw) { prargx(vw->getGLXDrawable()); }
-		closetrace();
-
-        long long time_tmp2 = gettime_nanoTime();
-        pid_t cur_pid = getpid();
-        pid_t cur_tid = syscall(SYS_gettid);
-        FILE* tmpFp = getLogFilePointer(cur_pid);
-        if(tmpFp == NULL){
-           fprintf(globalLog, "tmpFp in XPutImage is NULL\n");
+	}else{
+            _glXSwapBuffers(_dpy3D, drawable);
         }
-        fprintf(tmpFp, "PID%d TID%d intercepteglXSwapBuffer %lf swapBufferTime %lf\n", cur_pid, cur_tid, time_tmp2/1000000.0, (time_tmp2 - time_tmp1)/1000000.0);
+
+	stoptrace();  if(vw) { prargx(vw->getGLXDrawable()); }
+	closetrace();
+        
+        fprintf(tmpFp, "PID%d TID%d TimeForOneFrame %lf OpenGLTime: %lf, read_back_flag: %d, read_back_time: %lf\n", cur_pid, cur_tid, (time_tmp1-last_time_tmp1)/1000000.0, (timeElapsed)/1000000.0, read_back_flag, (time_tmp1-time_tmp0)/1000000.0);
         //timeTracker[current_event_index].array[5] = time_tmp2 - time_tmp1;//nsTcopy
+        last_time_tmp1 = time_tmp1;
 	CATCH();
 }
 

@@ -10,3 +10,9 @@ sudo cp /opt/libjpeg-turbo.64 /opt/libjpeg-turbo -rf
 cmake -G"Unix Makefiles" ../
 make -j16
 sudo make deb
+
+echo "Installing VirtualGL .."
+sudo dpkg -r virtualgl
+sudo dpkg -i ./*.deb
+echo "Configuring VirtualGL.."
+sudo vglserver_config
