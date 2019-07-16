@@ -53,6 +53,7 @@ GLint query_available = 0;
 GLuint m_iTimeQuery[2];
 int first_flag = 1;
 long long last_time_tmp1 = 0;
+long long last_time_tmp2 = 0;
 
 using namespace vglutil;
 using namespace vglserver;
@@ -2178,6 +2179,7 @@ void glXSwapBuffers(Display *dpy, GLXDrawable drawable)
                 query_available = 0;
                 glGenQueries(2, m_iTimeQuery);
                 glBeginQuery(GL_TIME_ELAPSED, m_iTimeQuery[0]);
+                time_tmp2 = gettime_nanoTime();
 
 		int interval_swp = vw->getSwapInterval();
 		if(interval_swp > 0)
@@ -2205,9 +2207,9 @@ void glXSwapBuffers(Display *dpy, GLXDrawable drawable)
 	stoptrace();  if(vw) { prargx(vw->getGLXDrawable()); }
 	closetrace();
         if(first_flag == 2) 
-            fprintf(tmpFp, "PID%d TID%d CPU time: %lf OpenGLTime: %lf, swapTime: %lf, read_back_flag: %d, GPU2CPU Time: %lf\n", cur_pid, cur_tid, (time_tmp0-last_time_tmp1)/1000000.0, (timeElapsed[0])/1000000.0, (timeElapsed[1])/1000000.0, read_back_flag, (time_tmp1-time_tmp0)/1000000.0);
+            fprintf(tmpFp, "PID%d TID%d OneFrameTime: %lf, CPU time: %lf OpenGLTime: %lf, swapTime: %lf, read_back_flag: %d, GPU2CPU Time: %lf\n", cur_pid, cur_tid, (time_tmp2-last_time_tmp2)/1000000.0, (time_tmp0-last_time_tmp2)/1000000.0, (timeElapsed[0])/1000000.0, (timeElapsed[1])/1000000.0, read_back_flag, (time_tmp1-time_tmp0)/1000000.0);
         //timeTracker[current_event_index].array[5] = time_tmp2 - time_tmp1;//nsTcopy
-        last_time_tmp1 = time_tmp1;
+        last_time_tmp2 = time_tmp2;
 	CATCH();
 }
 
