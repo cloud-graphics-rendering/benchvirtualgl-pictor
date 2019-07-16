@@ -50,7 +50,7 @@ extern FILE* getLogFilePointer(pid_t cur_pid);
 #define GL_TIMESTAMP 0x8E28
 #endif
 GLint query_available = 0;
-GLuint m_iTimeQuery;
+GLuint m_iTimeQuery[2];
 int first_flag = 1;
 long long last_time_tmp1 = 0;
 
@@ -2131,12 +2131,11 @@ void glXSwapBuffers(Display *dpy, GLXDrawable drawable)
 	static double err = 0.;  static bool first = true;
 
 	TRY();
-        //double value_good = 1;
         int read_back_flag = 0;
         long long time_tmp0 = 0;
         long long time_tmp1 = 0;
         long long time_tmp2 = 0;
-        GLuint64 timeElapsed = 0;
+        GLuint64 timeElapsed[2] = {0,0};
         pid_t cur_pid = getpid();
         pid_t cur_tid = syscall(SYS_gettid);
         FILE* tmpFp = getLogFilePointer(cur_pid);
@@ -2147,7 +2146,6 @@ void glXSwapBuffers(Display *dpy, GLXDrawable drawable)
 	if(isExcluded(dpy) || winhash.isOverlay(dpy, drawable))
 	{
 		_glXSwapBuffers(dpy, drawable);
-        fprintf(tmpFp, "*PID%d TID%d intercepteglXSwapBuffer %lf swapBufferTime %lf, read_back_flag: %d, read_back_time: %lf\n", cur_pid, cur_tid, time_tmp1/1000000.0, (timeElapsed)/1000000.0, read_back_flag, (time_tmp1-time_tmp0)/1000000.0);
 		return;
 	}
 
@@ -2155,46 +2153,31 @@ void glXSwapBuffers(Display *dpy, GLXDrawable drawable)
 
 	fconfig.flushdelay = 0.;
 	if(winhash.find(dpy, drawable, vw)){
+                if(first_flag == 2){
+                    glEndQuery(GL_TIME_ELAPSED);
+                }
                 read_back_flag = 1;
                 time_tmp0 = gettime_nanoTime();
 		vw->readback(GL_BACK, false, fconfig.sync);
                 time_tmp1 = gettime_nanoTime();
-                 
-                if(first_flag == 1){
-                    first_flag = 2;
-                    query_available = 0;
-                    glGenQueries(1, &m_iTimeQuery);
-                    glBeginQuery(GL_TIME_ELAPSED, m_iTimeQuery);
-                }else{
+                    
+                if(first_flag == 2){
+                    glBeginQuery(GL_TIME_ELAPSED, m_iTimeQuery[1]);
+                } 
+		vw->swapBuffers();
+                if(first_flag == 2){
                     glEndQuery(GL_TIME_ELAPSED);
                     while(!query_available){
-                         glGetQueryObjectiv(m_iTimeQuery, GL_QUERY_RESULT_AVAILABLE, &query_available);
+                         glGetQueryObjectiv(m_iTimeQuery[1], GL_QUERY_RESULT_AVAILABLE, &query_available);
                     }
-                    glGetQueryObjectui64v(m_iTimeQuery, GL_QUERY_RESULT, &timeElapsed);
-                    glDeleteQueries(1,&m_iTimeQuery);
-                    
-                    query_available = 0;
-                    glGenQueries(1, &m_iTimeQuery);
-                    glBeginQuery(GL_TIME_ELAPSED, m_iTimeQuery);
+                    glGetQueryObjectui64v(m_iTimeQuery[0], GL_QUERY_RESULT, &timeElapsed[0]);
+                    glGetQueryObjectui64v(m_iTimeQuery[1], GL_QUERY_RESULT, &timeElapsed[1]);
+                    glDeleteQueries(2,m_iTimeQuery);
                 }
-                //int iii=0;int jjj=0;
-                //for(iii=0;iii<10000;iii++)
-                //   for(jjj=0;jjj<10000;jjj++)
-                //     value_good = (10000*iii+jjj/10000)/value_good;
-                //-----------------------------
-                /*GLuint m_iTimeQuery;
-                GLint available = 0;
-                glGenQueries(1, &m_iTimeQuery);
-                glBeginQuery(GL_TIME_ELAPSED, m_iTimeQuery);*/
-                //-----------------------------                
-		vw->swapBuffers();
-                //-----------------------------
-                /*glEndQuery(GL_TIME_ELAPSED);
-                while(!available){
-                     glGetQueryObjectiv(m_iTimeQuery, GL_QUERY_RESULT_AVAILABLE, &available);
-                }
-                glGetQueryObjectui64v(m_iTimeQuery, GL_QUERY_RESULT, &timeElapsed);
-                glDeleteQueries(1,&m_iTimeQuery);*/
+                first_flag = 2;
+                query_available = 0;
+                glGenQueries(2, m_iTimeQuery);
+                glBeginQuery(GL_TIME_ELAPSED, m_iTimeQuery[0]);
 
 		int interval_swp = vw->getSwapInterval();
 		if(interval_swp > 0)
@@ -2221,8 +2204,8 @@ void glXSwapBuffers(Display *dpy, GLXDrawable drawable)
 
 	stoptrace();  if(vw) { prargx(vw->getGLXDrawable()); }
 	closetrace();
-        
-        fprintf(tmpFp, "PID%d TID%d TimeForOneFrame %lf OpenGLTime: %lf, read_back_flag: %d, read_back_time: %lf\n", cur_pid, cur_tid, (time_tmp1-last_time_tmp1)/1000000.0, (timeElapsed)/1000000.0, read_back_flag, (time_tmp1-time_tmp0)/1000000.0);
+        if(first_flag == 2) 
+            fprintf(tmpFp, "PID%d TID%d CPU time: %lf OpenGLTime: %lf, swapTime: %lf, read_back_flag: %d, GPU2CPU Time: %lf\n", cur_pid, cur_tid, (time_tmp0-last_time_tmp1)/1000000.0, (timeElapsed[0])/1000000.0, (timeElapsed[1])/1000000.0, read_back_flag, (time_tmp1-time_tmp0)/1000000.0);
         //timeTracker[current_event_index].array[5] = time_tmp2 - time_tmp1;//nsTcopy
         last_time_tmp1 = time_tmp1;
 	CATCH();
