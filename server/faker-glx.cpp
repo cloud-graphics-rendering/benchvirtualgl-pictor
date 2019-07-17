@@ -2207,7 +2207,7 @@ void glXSwapBuffers(Display *dpy, GLXDrawable drawable)
 	stoptrace();  if(vw) { prargx(vw->getGLXDrawable()); }
 	closetrace();
         if(first_flag == 2) 
-            fprintf(tmpFp, "PID%d TID%d OneFrameTime %lf CPUTime %lf OpenGLTime %lf swapTime %lf read_back_flag %d GPU2CPUTime: %lf\n", cur_pid, cur_tid, (time_tmp2-last_time_tmp2)/1000000.0, (time_tmp0-last_time_tmp2)/1000000.0, (timeElapsed[0])/1000000.0, (timeElapsed[1])/1000000.0, read_back_flag, (time_tmp1-time_tmp0)/1000000.0);
+            fprintf(tmpFp, "PID%d TID%d OneFrameTime %lf CPUTime %lf OpenGLTime %lf swapTime %lf read_back_flag %d GPU2CPUTime %lf\n", cur_pid, cur_tid, (time_tmp2-last_time_tmp2)/1000000.0, (time_tmp0-last_time_tmp2)/1000000.0, (timeElapsed[0])/1000000.0, (timeElapsed[1])/1000000.0, read_back_flag, (time_tmp1-time_tmp0)/1000000.0);
         //timeTracker[current_event_index].array[5] = time_tmp2 - time_tmp1;//nsTcopy
         last_time_tmp2 = time_tmp2;
 	CATCH();
