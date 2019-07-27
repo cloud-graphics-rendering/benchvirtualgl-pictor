@@ -45,7 +45,7 @@ int keypointer_eventID = 0;
 extern long long gettime_nanoTime();
 #endif
 
-struct fd_pair *headerfd;
+//struct fd_pair *headerfd;
 double lastMouseXPos = 649;
 double lastMouseYPos = 481;
 int InGameThreashold = 0;
@@ -70,6 +70,8 @@ using namespace vglserver;
 // Interposed X11 functions
 
 
+extern FILE* getLogFilePointer(pid_t cur_pid);
+/*
 FILE* getLogFilePointer(pid_t cur_pid){
      struct fd_pair *tmpfd = headerfd;
      struct fd_pair *lstfd = NULL;
@@ -104,7 +106,7 @@ FILE* getLogFilePointer(pid_t cur_pid){
           return (tmpfd->fd!=NULL)?tmpfd->fd:NULL;
      }
 }
-
+*/
 
 extern "C" {
 

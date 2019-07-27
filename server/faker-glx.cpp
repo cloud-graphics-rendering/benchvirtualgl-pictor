@@ -44,13 +44,14 @@ extern int read_clear;
 extern FILE *globalLog;
 //extern struct fd_pair *headerfd;
 extern FILE* getLogFilePointer(pid_t cur_pid);
+extern long long gettime_nanoTime(void);
 
 #ifndef GL_ARB_timer_query
 #define GL_TIME_ELAPSED 0x88BF
 #define GL_TIMESTAMP 0x8E28
 #endif
 GLint query_available = 0;
-GLuint m_iTimeQuery[2];
+GLuint m_iTimeQuery[3];
 int first_flag = 1;
 long long last_time_tmp1 = 0;
 long long last_time_tmp2 = 0;
@@ -90,6 +91,42 @@ using namespace vglserver;
     gettimeofday(&__tv, (struct timezone *)NULL);
     return(__tv.tv_usec);
 }*/
+
+struct fd_pair *headerfd;
+FILE* getLogFilePointer(pid_t cur_pid){
+     struct fd_pair *tmpfd = headerfd;
+     struct fd_pair *lstfd = NULL;
+     int try_find = 0;
+
+     char str1[10];
+     char logpath[80] ={'/','t','m','p','/','v','g','l','/'};
+
+     while(tmpfd!=NULL){
+         if(tmpfd->pid != cur_pid){
+             lstfd = tmpfd;
+             tmpfd = tmpfd->next;
+             try_find = 1;
+         }else{
+             return tmpfd->fd;
+         }
+     }
+     if(tmpfd == NULL){
+          tmpfd = (struct fd_pair*)malloc(sizeof(struct fd_pair));
+          tmpfd->pid = cur_pid;
+          sprintf(str1, "%d", cur_pid);
+          strcat(logpath, str1);
+          tmpfd->fd = fopen(logpath, "ab+");
+          //fprintf(globalLog, "logpath:%s, fd: %p\n", logpath, tmpfd->fd);
+          tmpfd->status = 1;
+          tmpfd->next = NULL;
+          if(try_find == 0){
+             headerfd = tmpfd;
+          }else{
+             lstfd->next = tmpfd;
+          }
+          return (tmpfd->fd!=NULL)?tmpfd->fd:NULL;
+     }
+}
 
 long long gettime_nanoTime(void)
 {
@@ -2156,6 +2193,7 @@ void glXSwapBuffers(Display *dpy, GLXDrawable drawable)
 	if(winhash.find(dpy, drawable, vw)){
                 if(first_flag == 2){
                     glEndQuery(GL_TIME_ELAPSED);
+                    glBeginQuery(GL_TIME_ELAPSED, m_iTimeQuery[1]);
                 }
                 read_back_flag = 1;
                 time_tmp0 = gettime_nanoTime();
@@ -2163,21 +2201,23 @@ void glXSwapBuffers(Display *dpy, GLXDrawable drawable)
                 time_tmp1 = gettime_nanoTime();
                     
                 if(first_flag == 2){
-                    glBeginQuery(GL_TIME_ELAPSED, m_iTimeQuery[1]);
+                    glEndQuery(GL_TIME_ELAPSED);
+                    glBeginQuery(GL_TIME_ELAPSED, m_iTimeQuery[2]);
                 } 
 		vw->swapBuffers();
                 if(first_flag == 2){
                     glEndQuery(GL_TIME_ELAPSED);
                     while(!query_available){
-                         glGetQueryObjectiv(m_iTimeQuery[1], GL_QUERY_RESULT_AVAILABLE, &query_available);
+                         glGetQueryObjectiv(m_iTimeQuery[2], GL_QUERY_RESULT_AVAILABLE, &query_available);
                     }
                     glGetQueryObjectui64v(m_iTimeQuery[0], GL_QUERY_RESULT, &timeElapsed[0]);
                     glGetQueryObjectui64v(m_iTimeQuery[1], GL_QUERY_RESULT, &timeElapsed[1]);
-                    glDeleteQueries(2,m_iTimeQuery);
+                    glGetQueryObjectui64v(m_iTimeQuery[2], GL_QUERY_RESULT, &timeElapsed[2]);
+                    glDeleteQueries(3,m_iTimeQuery);
                 }
                 first_flag = 2;
                 query_available = 0;
-                glGenQueries(2, m_iTimeQuery);
+                glGenQueries(3, m_iTimeQuery);
                 glBeginQuery(GL_TIME_ELAPSED, m_iTimeQuery[0]);
                 time_tmp2 = gettime_nanoTime();
 
@@ -2207,7 +2247,7 @@ void glXSwapBuffers(Display *dpy, GLXDrawable drawable)
 	stoptrace();  if(vw) { prargx(vw->getGLXDrawable()); }
 	closetrace();
         if(first_flag == 2) 
-            fprintf(tmpFp, "PID%d TID%d OneFrameTime %lf CPUTime %lf OpenGLTime %lf swapTime %lf read_back_flag %d GPU2CPUTime %lf\n", cur_pid, cur_tid, (time_tmp2-last_time_tmp2)/1000000.0, (time_tmp0-last_time_tmp2)/1000000.0, (timeElapsed[0])/1000000.0, (timeElapsed[1])/1000000.0, read_back_flag, (time_tmp1-time_tmp0)/1000000.0);
+            fprintf(tmpFp, "PID%d TID%d OneFrameTime %lf CPUTime %lf OpenGLOpTime %lf openglcopy %lf openglswapTime %lf read_back_flag %d GPU2CPUTime %lf\n", cur_pid, cur_tid, (time_tmp2-last_time_tmp2)/1000000.0, (time_tmp0-last_time_tmp2)/1000000.0, (timeElapsed[0])/1000000.0, (timeElapsed[1])/1000000.0, (timeElapsed[2])/1000000.0, read_back_flag, (time_tmp1-time_tmp0)/1000000.0);
         //timeTracker[current_event_index].array[5] = time_tmp2 - time_tmp1;//nsTcopy
         last_time_tmp2 = time_tmp2;
 	CATCH();

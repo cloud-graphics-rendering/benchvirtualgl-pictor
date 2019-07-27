@@ -19,6 +19,12 @@
 #include "vglutil.h"
 #include "Log.h"
 
+#include <sys/types.h>
+#include <sys/syscall.h>
+#ifndef TIME_TRACK
+#include "timetrack.h"
+#endif
+
 using namespace vglutil;
 using namespace vglcommon;
 using namespace vglserver;
@@ -93,6 +99,7 @@ void X11Trans::run(void)
 
 FBXFrame *X11Trans::getFrame(Display *dpy, Window win, int width, int height)
 {
+
 	FBXFrame *f = NULL;
 
 	if(thread) thread->checkError();

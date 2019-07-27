@@ -21,6 +21,7 @@
 #include "vglutil.h"
 #include <sys/time.h>
 #include <sys/syscall.h>
+#include <sys/types.h>
 
 #ifndef TIME_TRACK
 #include "timetrack.h"
@@ -33,6 +34,9 @@
 static int errorLine = -1;
 static FILE *warningFile = NULL;
 
+FILE *globalLog=NULL;
+int first_xwa_flag = 0;
+XWindowAttributes xwa;
 int timeTrackerAttached2 = 0;
 timeTrack* timeTracker2 = NULL;
 unsigned int gettime_microPart(void)
@@ -41,7 +45,7 @@ unsigned int gettime_microPart(void)
     gettimeofday(&__tv, (struct timezone *)NULL);
     return(__tv.tv_usec);
 }
-/*
+
 struct fd_pair *headerfd;
 FILE* getLogFilePointer(pid_t cur_pid){
      struct fd_pair *tmpfd = headerfd;
@@ -77,7 +81,6 @@ FILE* getLogFilePointer(pid_t cur_pid){
           return (tmpfd->fd!=NULL)?tmpfd->fd:NULL;
      }
 }
-*/
 
 #if defined(_WIN32)
 
@@ -193,6 +196,17 @@ void fbx_printwarnings(FILE *stream)
 
 int fbx_init(fbx_struct *fb, fbx_wh wh, int width_, int height_, int useShm)
 {
+        pid_t cur_pid = getpid();
+        pid_t cur_tid = syscall(SYS_gettid);
+        FILE* tmpFp = getLogFilePointer(cur_pid);
+        if(tmpFp == NULL){
+           if(globalLog == NULL)
+               globalLog = fopen("/tmp/Virtalgl.log","a");
+           fprintf(globalLog, "tmpFp in XPutImage is NULL\n");
+        }
+        fprintf(tmpFp, "xxx PID%d TID%d enter into fbx_init\n", cur_pid, cur_tid);
+        long long time_tmp0 = gettime_nanoTime();
+
 	int width, height;
 	int rmask, gmask, bmask, ps, i;
 
@@ -200,7 +214,8 @@ int fbx_init(fbx_struct *fb, fbx_wh wh, int width_, int height_, int useShm)
 	#ifdef _WIN32
 	BMINFO bminfo;  HBITMAP hmembmp = 0;  RECT rect;  HDC hdc = NULL;
 	#else
-	XWindowAttributes xwa;  int shmok = 1, pixmap = 0;
+	int shmok = 1, pixmap = 0;
+	//XWindowAttributes xwa;  int shmok = 1, pixmap = 0;
 	#endif
 
 	if(!fb) _throw("Invalid argument");
@@ -307,7 +322,14 @@ int fbx_init(fbx_struct *fb, fbx_wh wh, int width_, int height_, int useShm)
 	}
 	else
 	{
-		_x11(XGetWindowAttributes(wh.dpy, wh.d, &xwa));
+        long long time_tmp1 = gettime_nanoTime();
+        fprintf(tmpFp, "yyy PID%d TID%d t1-t0 %lf wh.v %d\n", cur_pid, cur_tid, (time_tmp1-time_tmp0)/1000000.0, wh.v);
+                if(first_xwa_flag == 0){
+		    _x11(XGetWindowAttributes(wh.dpy, wh.d, &xwa));
+                    first_xwa_flag += 1;
+                }
+        long long time_tmp2 = gettime_nanoTime();
+        fprintf(tmpFp, "zzz PID%d TID%d t2-t1 %lf first_flag %d width %d height %d\n", cur_pid, cur_tid, (time_tmp2-time_tmp1)/1000000.0, first_xwa_flag, xwa.width, xwa.height);
 	}
 	if(width_ > 0) width = width_;else width = xwa.width;
 	if(height_ > 0) height = height_;else height = xwa.height;
@@ -320,6 +342,7 @@ int fbx_init(fbx_struct *fb, fbx_wh wh, int width_, int height_, int useShm)
 	}
 	memset(fb, 0, sizeof(fbx_struct));
 	fb->wh.dpy = wh.dpy;  fb->wh.d = wh.d;
+        
 
 	#ifdef USESHM
 	if(!useShm)
@@ -455,6 +478,7 @@ int fbx_init(fbx_struct *fb, fbx_wh wh, int width_, int height_, int useShm)
 	fb->bits = fb->xi->data;
 	fb->pixmap = pixmap;
 	_x11(fb->xgc = XCreateGC(fb->wh.dpy, fb->pm ? fb->pm : fb->wh.d, 0, NULL));
+
 	return 0;
 
 	finally:

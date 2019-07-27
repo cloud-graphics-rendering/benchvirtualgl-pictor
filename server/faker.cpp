@@ -32,7 +32,7 @@
 using namespace vglutil;
 using namespace vglserver;
 
-FILE* globalLog = NULL;
+extern FILE* globalLog;
 
 namespace vglfaker {
 

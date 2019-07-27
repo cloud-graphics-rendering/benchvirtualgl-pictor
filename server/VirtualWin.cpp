@@ -35,6 +35,7 @@ extern int keypointer_eventID;
 extern int current_event_index;
 extern int read_clear;
 extern timeTrack* timeTracker;
+extern long long gettime_nanoTime(void);
 
 static const int trans2pf[RRTRANS_FORMATOPT] =
 {
@@ -489,20 +490,28 @@ void VirtualWin::sendVGL(GLint drawBuf, bool spoilLast, bool doStereo,
 void VirtualWin::sendX11(GLint drawBuf, bool spoilLast, bool sync,
 	bool doStereo, int stereoMode)
 {
-        /*pid_t cur_pid = getpid();
+        pid_t cur_pid = getpid();
         pid_t cur_tid = syscall(SYS_gettid);
         FILE* tmpFp = getLogFilePointer(cur_pid);
         if(tmpFp == NULL){
            fprintf(globalLog, "tmpFp in sendX11 is NULL\n");
-        }*/
+        }
 
+        long long time_tmp0 = gettime_nanoTime();
+        long long time_tmp1=0;
+        long long time_tmp2=0;
+        long long time_tmp3=0;
+        long long time_tmp4=0;
+        long long time_tmp5=0;
 	int width = oglDraw->getWidth(), height = oglDraw->getHeight();
 
 	FBXFrame *f;
 	if(!x11trans) _newcheck(x11trans = new X11Trans());
 	if(spoilLast && fconfig.spoil && !x11trans->isReady()) return;
 	if(!fconfig.spoil) x11trans->synchronize();
+        time_tmp5 = gettime_nanoTime();
 	_errifnot(f = x11trans->getFrame(dpy, x11Draw, width, height));
+        time_tmp4 = gettime_nanoTime();
 	f->flags |= FRAME_BOTTOMUP;
 	if(doStereo && isAnaglyphic(stereoMode))
 	{
@@ -520,8 +529,10 @@ void VirtualWin::sendX11(GLint drawBuf, bool spoilLast, bool sync,
 			GLint readBuf = drawBuf;
 			if(stereoMode == RRSTEREO_REYE) readBuf = reye(drawBuf);
 			else if(stereoMode == RRSTEREO_LEYE) readBuf = leye(drawBuf);
+                        time_tmp1 = gettime_nanoTime();
 			readPixels(0, 0, min(width, f->hdr.framew), f->pitch,
 				min(height, f->hdr.frameh), GL_NONE, f->pf, f->bits, readBuf, false);
+                        time_tmp2 = gettime_nanoTime();
 		}
 	}
         if(read_clear == 0xdeadbeef){
@@ -547,6 +558,10 @@ void VirtualWin::sendX11(GLint drawBuf, bool spoilLast, bool sync,
         
 	if(fconfig.logo) f->addLogo();
 	x11trans->sendFrame(f, sync);
+        time_tmp3 = gettime_nanoTime();
+        fprintf(tmpFp, "111 PID %d TID %d beforReadPixel %lf ReadPixel %lf AfterReadPixel %lf\n", cur_pid, cur_tid, (time_tmp1-time_tmp0)/1000000.0,(time_tmp2-time_tmp1)/1000000.0,(time_tmp3-time_tmp2)/1000000.0);
+        fprintf(tmpFp, "444 PID %d TID %d beforReadPixelHalf1 %lf beforReadPixelHalf2 %lf\n", cur_pid, cur_tid, (time_tmp4-time_tmp0)/1000000.0,(time_tmp1-time_tmp4)/1000000.0);
+        fprintf(tmpFp, "000 PID %d TID %d beforReadPixelQuater1 %lf beforReadPixelQuater2 %lf\n", cur_pid, cur_tid, (time_tmp5-time_tmp0)/1000000.0,(time_tmp4-time_tmp5)/1000000.0);
 }
 
 
