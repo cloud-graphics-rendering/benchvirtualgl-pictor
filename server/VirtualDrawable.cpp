@@ -36,7 +36,6 @@ extern int keypointer_eventID;
 extern int current_event_index;
 extern int read_clear;
 extern long long gettime_nanoTime(void);
-GLuint pboIds[2]={0,0};
 
 #define CHECKGL(m)  if(glError()) _throw("Could not " m);
 
@@ -324,11 +323,6 @@ void VirtualDrawable::readPixels(GLint x, GLint y, GLint width, GLint pitch,
 	GLint height, GLenum glFormat, PF *pf, GLubyte *bits, GLint readBuf,
 	bool stereo)
 {
-        static int index = 0;//added
-        int nextIndex = 0;   //added pbo index used for next frame
-        index = (index + 1) % 2;
-        nextIndex = (index + 1) % 2;
-
         pid_t cur_pid = getpid();
         pid_t cur_tid = syscall(SYS_gettid);
         FILE* tmpFp = getLogFilePointer(cur_pid);
@@ -336,6 +330,7 @@ void VirtualDrawable::readPixels(GLint x, GLint y, GLint width, GLint pitch,
            fprintf(globalLog, "tmpFp in XPutImage is NULL\n");
         }
         long long time_tmp0 = gettime_nanoTime();
+
 	double t0 = 0.0, tRead, tTotal;
 	GLenum type = GL_UNSIGNED_BYTE;
 
@@ -416,27 +411,15 @@ void VirtualDrawable::readPixels(GLint x, GLint y, GLint width, GLint pitch,
 				_throw("GL_ARB_pixel_buffer_object extension not available");
 		}
 		#ifdef GL_VERSION_1_5
-		if(!pboIds[0]) {
-                    _glGenBuffers(2, pboIds);//added
-		    if(!pboIds[0]) _throw("Could not generate pixel buffer object");
-		    _glBindBuffer(GL_PIXEL_PACK_BUFFER_EXT, pboIds[0]);
-	            _glBufferData(GL_PIXEL_PACK_BUFFER_EXT, pitch * height, NULL, GL_STREAM_READ);
-                    
-		    if(!pboIds[1]) _throw("Could not generate pixel buffer object");
-		    _glBindBuffer(GL_PIXEL_PACK_BUFFER_EXT, pboIds[1]);
-	            _glBufferData(GL_PIXEL_PACK_BUFFER_EXT, pitch * height, NULL, GL_STREAM_READ);
-                }
-		//if(!pbo) _glGenBuffers(1, &pbo);
-		//if(!pboIds[0]) _throw("Could not generate pixel buffer object");
-		//if(!pbo[0]) _throw("Could not generate pixel buffer object");
+		if(!pbo) _glGenBuffers(1, &pbo);
+		if(!pbo) _throw("Could not generate pixel buffer object");
 		if(!alreadyPrinted && fconfig.verbose)
 		{
 			vglout.println("[VGL] Using pixel buffer objects for readback (%s --> %s)",
 				formatString(oglDraw->getFormat()), formatString(glFormat));
 			alreadyPrinted = true;
 		}
-		_glBindBuffer(GL_PIXEL_PACK_BUFFER_EXT, pboIds[index]);
-		//_glBindBuffer(GL_PIXEL_PACK_BUFFER_EXT, pbo);
+		_glBindBuffer(GL_PIXEL_PACK_BUFFER_EXT, pbo);
 		int size = 0;
 		_glGetBufferParameteriv(GL_PIXEL_PACK_BUFFER_EXT, GL_BUFFER_SIZE, &size);
 		if(size != pitch * height)
@@ -471,8 +454,8 @@ void VirtualDrawable::readPixels(GLint x, GLint y, GLint width, GLint pitch,
 		#ifdef GL_VERSION_1_5
 		unsigned char *pboBits = NULL;
                 long long time_tmp10 = gettime_nanoTime();
-		_glBindBuffer(GL_PIXEL_PACK_BUFFER_EXT, pboIds[nextIndex]);
-		pboBits = (unsigned char *)_glMapBuffer(GL_PIXEL_PACK_BUFFER_EXT,GL_READ_ONLY);
+		pboBits = (unsigned char *)_glMapBuffer(GL_PIXEL_PACK_BUFFER_EXT,
+			GL_READ_ONLY);
                 long long time_tmp11 = gettime_nanoTime();
 		if(!pboBits) _throw("Could not map pixel buffer object");
 		memcpy(bits, pboBits, pitch * height);
@@ -482,7 +465,7 @@ void VirtualDrawable::readPixels(GLint x, GLint y, GLint width, GLint pitch,
                 long long time_tmp13 = gettime_nanoTime();
 		_glBindBuffer(GL_PIXEL_PACK_BUFFER_EXT, 0);
                 long long time_tmp14 = gettime_nanoTime();
-                fprintf(tmpFp, "222 PID: %d, TID: %d, beforeMap: %lf, Map: %lf, memcpy:%lf, unmap:%lf, bind:%lf\n", cur_pid, cur_tid, (time_tmp10-time_tmp1)/1000000.0,(time_tmp11-time_tmp10)/1000000.0,(time_tmp12-time_tmp11)/1000000.0,(time_tmp13-time_tmp12)/1000000.0,(time_tmp14-time_tmp13)/1000000.0);
+                fprintf(tmpFp, "222 PID %d TID %d beforeMap %lf Map %lf memcpy %lf unmap %lf bind %lf\n", cur_pid, cur_tid, (time_tmp10-time_tmp1)/1000000.0,(time_tmp11-time_tmp10)/1000000.0,(time_tmp12-time_tmp11)/1000000.0,(time_tmp13-time_tmp12)/1000000.0,(time_tmp14-time_tmp13)/1000000.0);
 		#endif
 		tTotal = getTime() - t0;
 		numFrames++;
@@ -559,7 +542,7 @@ void VirtualDrawable::readPixels(GLint x, GLint y, GLint width, GLint pitch,
 		setenv(envName, envValue, 1);
 	}
         long long time_tmp3 = gettime_nanoTime();
-     fprintf(tmpFp, "333 PID: %d, TID: %d, readPixelsPrepare: %lf, readPixelRead:%lf, readPixelAutotest:%lf\n", cur_pid, cur_tid, (time_tmp1-time_tmp0)/1000000.0,(time_tmp2-time_tmp1)/1000000.0,(time_tmp3-time_tmp2)/1000000.0);
+     fprintf(tmpFp, "333 PID %d TID %d readPixelsPrepare %lf readPixelRead %lf readPixelAutotest %lf\n", cur_pid, cur_tid, (time_tmp1-time_tmp0)/1000000.0,(time_tmp2-time_tmp1)/1000000.0,(time_tmp3-time_tmp2)/1000000.0);
 }
 
 
