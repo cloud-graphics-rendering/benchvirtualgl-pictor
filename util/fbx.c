@@ -324,10 +324,10 @@ int fbx_init(fbx_struct *fb, fbx_wh wh, int width_, int height_, int useShm)
 	{
         long long time_tmp1 = gettime_nanoTime();
         fprintf(tmpFp, "yyy PID%d TID%d t1-t0 %lf wh.v %d\n", cur_pid, cur_tid, (time_tmp1-time_tmp0)/1000000.0, wh.v);
-                if(first_xwa_flag == 0){
+                //if(first_xwa_flag < 10000){
 		    _x11(XGetWindowAttributes(wh.dpy, wh.d, &xwa));
-                    first_xwa_flag += 1;
-                }
+                //    first_xwa_flag += 1;
+                //}
         long long time_tmp2 = gettime_nanoTime();
         fprintf(tmpFp, "zzz PID%d TID%d t2-t1 %lf first_flag %d width %d height %d\n", cur_pid, cur_tid, (time_tmp2-time_tmp1)/1000000.0, first_xwa_flag, xwa.width, xwa.height);
 	}
