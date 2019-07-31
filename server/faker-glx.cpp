@@ -2173,7 +2173,7 @@ void glXSwapBuffers(Display *dpy, GLXDrawable drawable)
         long long time_tmp0 = 0;
         long long time_tmp1 = 0;
         long long time_tmp2 = 0;
-        GLuint64 timeElapsed[2] = {0,0};
+        GLuint64 timeElapsed[3] = {0,0,0};
         pid_t cur_pid = getpid();
         pid_t cur_tid = syscall(SYS_gettid);
         FILE* tmpFp = getLogFilePointer(cur_pid);
