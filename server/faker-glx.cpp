@@ -2208,7 +2208,8 @@ void glXSwapBuffers(Display *dpy, GLXDrawable drawable)
                 queryIndex = (queryIndex + 1) % 2;
                 nextIndex = (queryIndex + 1) % 2;
                 read_back_flag = 1;
-
+                //char* throt_delay = getenv("TROT_DELAY");
+                //usleep(atoi(throt_delay));
                 time_tmp0 = gettime_nanoTime();
 		vw->readback(GL_BACK, false, fconfig.sync);
                 time_tmp1 = gettime_nanoTime();
