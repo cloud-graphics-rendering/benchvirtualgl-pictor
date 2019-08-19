@@ -324,7 +324,7 @@ int fbx_init(fbx_struct *fb, fbx_wh wh, int width_, int height_, int useShm)
 	{
         long long time_tmp1 = gettime_nanoTime();
         fprintf(tmpFp, "yyy PID%d TID%d t1-t0 %lf wh.v %d\n", cur_pid, cur_tid, (time_tmp1-time_tmp0)/1000000.0, wh.v);
-                //if(first_xwa_flag < 10000){
+                //if(first_xwa_flag < 100){
 		    _x11(XGetWindowAttributes(wh.dpy, wh.d, &xwa));
                 //    first_xwa_flag += 1;
                 //}
@@ -659,25 +659,6 @@ int fbx_awrite(fbx_struct *fb, int srcX_, int srcY_, int dstX_, int dstY_,
 	if(!fb->wh.dpy || !fb->wh.d || !fb->xi || !fb->bits)
 		_throw("Not initialized");
 
-	#ifdef USESHM
-	if(fb->shm)
-	{
-		if(!fb->xattach)
-		{
-			_x11(XShmAttach(fb->wh.dpy, &fb->shminfo));  fb->xattach = 1;
-		}
-		_x11(XShmPutImage(fb->wh.dpy, fb->wh.d, fb->xgc, fb->xi, srcX, srcY, dstX,
-			dstY, width, height, False));
-	}
-	else
-	#endif
-	{
-		Drawable draw = fb->pixmap ? fb->wh.d : fb->pm;
-		if(draw == fb->pm) dstX = dstY = 0;
-		XPutImage(fb->wh.dpy, draw, fb->xgc, fb->xi, srcX, srcY, dstX, dstY, width,
-			height);
-	}
-
 	//key_t key;
         //char *filename = NULL; // +1 for the null-terminator
         if(!timeTrackerAttached2){
@@ -722,9 +703,41 @@ int fbx_awrite(fbx_struct *fb, int srcX_, int srcY_, int dstX_, int dstY_,
               //fprintf(stderr, "Fatal: Bad Match..handling:%d, in fbx_awrite\n", index);
            }
            fb->kb_flag = 0;
+           fb->xi->data[0]  = 0xde;
+           fb->xi->data[1]  = 0xad;
+           fb->xi->data[2]  = 0xbe;
+           fb->xi->data[3]  = 0xef;
+           fb->xi->data[4]  = (fb->keypointer_eventID>>24) & 0xff;
+           fb->xi->data[5]  = (fb->keypointer_eventID>>16) & 0xff;
+           fb->xi->data[6]  = (fb->keypointer_eventID>> 8) & 0xff;
+           fb->xi->data[7]  = (fb->keypointer_eventID)     & 0xff;   
+           fb->xi->data[8]  = (fb->current_event_index>>24) & 0xff;
+           fb->xi->data[9]  = (fb->current_event_index>>16) & 0xff;
+           fb->xi->data[10] = (fb->current_event_index>> 8) & 0xff;
+           fb->xi->data[11] = (fb->current_event_index)     & 0xff;   
         }else{
            timeTracker2[0].valid = 0;//nsTreq_send
         }
+
+	#ifdef USESHM
+	if(fb->shm)
+	{
+		if(!fb->xattach)
+		{
+			_x11(XShmAttach(fb->wh.dpy, &fb->shminfo));  fb->xattach = 1;
+		}
+		_x11(XShmPutImage(fb->wh.dpy, fb->wh.d, fb->xgc, fb->xi, srcX, srcY, dstX,
+			dstY, width, height, False));
+	}
+	else
+	#endif
+	{
+		Drawable draw = fb->pixmap ? fb->wh.d : fb->pm;
+		if(draw == fb->pm) dstX = dstY = 0;
+		XPutImage(fb->wh.dpy, draw, fb->xgc, fb->xi, srcX, srcY, dstX, dstY, width,
+			height);
+	}
+
 
 	return 0;
 
