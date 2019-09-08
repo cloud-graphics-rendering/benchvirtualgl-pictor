@@ -859,6 +859,7 @@ int XNextEvent(Display *dpy, XEvent *xe)
             timeTracker = (timeTrack*) shmat(shmid, (void*)0, 0);
             timeTrackerAttached = 1;
 	    read_clear = 0;
+            free(filename)
         }
         XKeyEvent* xkey = (XKeyEvent*)xe;
         //if(filename != NULL)
