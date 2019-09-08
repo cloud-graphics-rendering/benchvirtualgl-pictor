@@ -32,9 +32,6 @@ using namespace vglserver;
 
 extern FILE *globalLog;
 extern FILE* getLogFilePointer(pid_t cur_pid);
-extern int keypointer_eventID;
-extern int current_event_index;
-extern int read_clear;
 extern long long gettime_nanoTime(void);
 
 #define CHECKGL(m)  if(glError()) _throw("Could not " m);
