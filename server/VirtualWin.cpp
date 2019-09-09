@@ -32,7 +32,8 @@ using namespace vglserver;
 extern FILE *globalLog;
 extern FILE* getLogFilePointer(pid_t cur_pid);
 extern int keypointer_eventID;
-extern int current_event_index;
+//extern int current_event_index;
+extern int shift_event_index;
 extern int read_clear;
 extern timeTrack* timeTracker;
 extern long long gettime_nanoTime(void);
@@ -535,14 +536,20 @@ void VirtualWin::sendX11(GLint drawBuf, bool spoilLast, bool sync,
                         time_tmp2 = gettime_nanoTime();
 		}
 	}
-        if(read_clear == 0xdeadbeef){
-            if((timeTracker[current_event_index].eventID == keypointer_eventID) && timeTracker[current_event_index].valid){
+        //if(read_clear == 0xdeadbeef){
+        if(shift_event_index != -1){
+            //if((timeTracker[current_event_index].eventID == keypointer_eventID) && timeTracker[current_event_index].valid){
+            //if((timeTracker[shift_event_index].eventID == keypointer_eventID) && timeTracker[shift_event_index].valid){
+            if(timeTracker[shift_event_index].valid){
                 f->fb.kb_flag = 0xdeadbeef;
-                f->fb.keypointer_eventID = keypointer_eventID;
-                f->fb.current_event_index = current_event_index;
+                f->fb.keypointer_eventID = timeTracker[shift_event_index].eventID;
+                //f->fb.keypointer_eventID = keypointer_eventID;
+                //f->fb.current_event_index = current_event_index;
+                f->fb.current_event_index = shift_event_index;
             }else{
                 f->fb.kb_flag = 0;
-                timeTracker[current_event_index].valid = 0;
+                //timeTracker[current_event_index].valid = 0;
+                timeTracker[shift_event_index].valid = 0;
             }
             read_clear = 0;
         }else{
