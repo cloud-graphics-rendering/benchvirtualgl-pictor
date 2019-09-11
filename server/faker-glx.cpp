@@ -41,7 +41,7 @@
 extern timeTrack* timeTracker;
 extern int current_event_index;
 extern int onque_event_index;
-extern int shift_event_index;
+int shift_event_index = -1;
 extern int read_clear;
 extern FILE *globalLog;
 //extern struct fd_pair *headerfd;
@@ -2168,9 +2168,12 @@ void glXSelectEventSGIX(Display *dpy, GLXDrawable drawable, unsigned long mask)
 
 void glXSwapBuffers(Display *dpy, GLXDrawable drawable)
 {
-        shift_event_index = onque_event_index;
-        if(read_clear == 0xdeadbeef)
-            timeTracker[current_event_index].array[5] = (long long)gettime_nanoTime();//hook6,end of game logic
+        int shift_event_index_tmp = onque_event_index;
+        int current_event_index_tmp = current_event_index;
+        int read_clear_tmp = read_clear;
+        fprintf(stderr, "readclear in glxswapbuffers1:%x, shift_index:%d, current_eventID:%d\n",read_clear_tmp, shift_event_index_tmp, current_event_index);
+        if(read_clear_tmp == 0xdeadbeef)
+            timeTracker[current_event_index_tmp].array[5] = (long long)gettime_nanoTime();//hook6,end of game logic
 	VirtualWin *vw = NULL;
 	static Timer timer;  Timer sleepTimer;
 	static double err = 0.;  static bool first = true;
@@ -2216,12 +2219,12 @@ void glXSwapBuffers(Display *dpy, GLXDrawable drawable)
                 //char* throt_delay = getenv("TROT_DELAY");
                 //usleep(atoi(throt_delay));
                 time_tmp0 = gettime_nanoTime();
-                if(shift_event_index != -1)
-                    timeTracker[shift_event_index].array[10] = time_tmp0;
+                if(shift_event_index_tmp != -1)
+                    timeTracker[shift_event_index_tmp].array[10] = time_tmp0;
 		vw->readback(GL_BACK, false, fconfig.sync);
                 time_tmp1 = gettime_nanoTime();
-                if(shift_event_index != -1)
-                    timeTracker[shift_event_index].array[11] = time_tmp1;
+                if(shift_event_index_tmp != -1)
+                    timeTracker[shift_event_index_tmp].array[11] = time_tmp1;
 
 		vw->swapBuffers();
                 time_tmp2 = gettime_nanoTime();
@@ -2260,10 +2263,13 @@ void glXSwapBuffers(Display *dpy, GLXDrawable drawable)
         if(first_flag == 3) 
             fprintf(tmpFp, "PID%d TID%d OneFrameTime %lf CPUTime %lf OpenGLOpTime %lf read_back_flag %d GPU2CPUTime %lf\n", cur_pid, cur_tid, (time_tmp2-last_time_tmp2)/1000000.0, (time_tmp0-last_time_tmp2)/1000000.0, (timeElapsed[nextIndex])/1000000.0, read_back_flag, (time_tmp1-time_tmp0)/1000000.0);
         last_time_tmp2 = time_tmp2;
-        if(readclear == 0xdeadbeef) //has input
-            onque_event_index = current_event_index;
-        else
+        fprintf(stderr, "readclear in glxswapbuffers2:%d, current_index:%d\n",read_clear_tmp,current_event_index_tmp);
+        if(read_clear_tmp == 0xdeadbeef) {//has input
+            onque_event_index = current_event_index_tmp;
+        }else{
             onque_event_index = -1;
+        }
+        shift_event_index = shift_event_index_tmp;
 	CATCH();
 }
 
