@@ -41,10 +41,10 @@ timeTrack* timeTracker = NULL;
 int timeTrackerAttached = 0;
 int current_event_index = 1;
 int onque_event_index = -1;
-int shift_event_index = -1;
 int read_clear = 0;
 int keypointer_eventID = 0;
 extern long long gettime_nanoTime();
+EOI_LoopQueue eoi_loopque;
 #endif
 
 //struct fd_pair *headerfd;
@@ -783,6 +783,8 @@ int XNextEvent(Display *dpy, XEvent *xe)
 	int i = 1;
 	XEvent *event;
 	double vals2[2] = {-1, -1};
+	fprintf(stderr,"deal with this input in XNextEvent\n");
+	//fprintf(stderr,"deal with this input in XPutImage, read_clear:%x, eventID:%d\n", read_clear, keypointer_eventID);
 	//TRY();
         /*
         pid_t cur_pid = getpid();
@@ -873,6 +875,7 @@ int XNextEvent(Display *dpy, XEvent *xe)
                if(timeTracker[i].eventID == keypointer_eventID){
                   timeTracker[i].array[4] = (long long)gettime_nanoTime();//usTevent_pickup
                   current_event_index = i;
+                  eoi_loopque.push(i);
 	          read_clear = 0xdeadbeef;
                   break;
                }
@@ -880,9 +883,12 @@ int XNextEvent(Display *dpy, XEvent *xe)
             if(i == NUM_ROW){
 	        read_clear = 0;
             }
+	    fprintf(stderr,"deal with this input in XNextEvent, read_clear:%x, eventID:%d\n", read_clear, keypointer_eventID);
         }else{
+	    fprintf(stderr,"deal with this input in XNextEvent, not keyboard or mouse event\n");
             read_clear = 0;
         }
+	fprintf(stderr,"deal with this input in XNextEvent, xe->type:%d, read_clear:%x,\n",xe->type, read_clear);
 	handleEvent(dpy, xe);
 
 	//CATCH();

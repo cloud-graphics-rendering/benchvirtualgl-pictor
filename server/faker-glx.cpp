@@ -39,6 +39,7 @@
 #include "timetrack.h"
 #endif
 extern timeTrack* timeTracker;
+extern EOI_LoopQueue eoi_loopque;
 extern int current_event_index;
 extern int onque_event_index;
 int shift_event_index = -1;
@@ -2170,9 +2171,12 @@ void glXSwapBuffers(Display *dpy, GLXDrawable drawable)
 {
         shift_event_index = onque_event_index;
         int read_clear_tmp = read_clear;
-        fprintf(stderr, "readclear in glxswapbuffers1:%x, shift_index:%d, current_eventID:%d\n",read_clear, shift_event_index, current_event_index);
-        if(read_clear == 0xdeadbeef)
-            timeTracker[current_event_index].array[5] = (long long)gettime_nanoTime();//hook6,end of game logic
+        int tmp_index = eoi_loopque.pop();
+        fprintf(stderr, "readclear in glxswapbuffers1:%x, shift_index:%d, current_eventID:%d, tmp_index:%d\n",read_clear, shift_event_index, current_event_index, tmp_index);
+        if (tmp_index != -1)
+            timeTracker[tmp_index].array[5] = (long long)gettime_nanoTime();//hook6,end of game logic
+        //if(read_clear == 0xdeadbeef)
+        //    timeTracker[current_event_index].array[5] = (long long)gettime_nanoTime();//hook6,end of game logic
 	VirtualWin *vw = NULL;
 	static Timer timer;  Timer sleepTimer;
 	static double err = 0.;  static bool first = true;
@@ -2263,11 +2267,12 @@ void glXSwapBuffers(Display *dpy, GLXDrawable drawable)
             fprintf(tmpFp, "PID%d TID%d OneFrameTime %lf CPUTime %lf OpenGLOpTime %lf read_back_flag %d GPU2CPUTime %lf\n", cur_pid, cur_tid, (time_tmp2-last_time_tmp2)/1000000.0, (time_tmp0-last_time_tmp2)/1000000.0, (timeElapsed[nextIndex])/1000000.0, read_back_flag, (time_tmp1-time_tmp0)/1000000.0);
         last_time_tmp2 = time_tmp2;
         fprintf(stderr, "readclear in glxswapbuffers2:%d, current_index:%d\n",read_clear_tmp,current_event_index);
-        if(read_clear_tmp == 0xdeadbeef) {//has input
+        /*if(read_clear_tmp == 0xdeadbeef) {//has input
             onque_event_index = current_event_index;
         }else{
             onque_event_index = -1;
-        }
+        }*/
+        onque_event_index = tmp_index;
 	CATCH();
 }
 
