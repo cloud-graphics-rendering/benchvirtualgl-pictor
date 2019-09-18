@@ -43,6 +43,10 @@ extern EOI_LoopQueue eoi_loopque;
 extern int current_event_index;
 extern int onque_event_index;
 int shift_event_index = -1;
+long long last_glxfps_time = 0;
+double glxFPS = 0;
+int glx_frame_num = 0;
+
 extern int read_clear;
 extern FILE *globalLog;
 //extern struct fd_pair *headerfd;
@@ -2172,7 +2176,7 @@ void glXSwapBuffers(Display *dpy, GLXDrawable drawable)
         shift_event_index = onque_event_index;
         int read_clear_tmp = read_clear;
         int tmp_index = eoi_loopque.pop();
-        fprintf(stderr, "readclear in glxswapbuffers1:%x, shift_index:%d, current_eventID:%d, tmp_index:%d\n",read_clear, shift_event_index, current_event_index, tmp_index);
+        //fprintf(stderr, "readclear in glxswapbuffers1:%x, shift_index:%d, current_eventID:%d, tmp_index:%d\n",read_clear, shift_event_index, current_event_index, tmp_index);
         if (tmp_index != -1)
             timeTracker[tmp_index].array[5] = (long long)gettime_nanoTime();//hook6,end of game logic
         //if(read_clear == 0xdeadbeef)
@@ -2263,10 +2267,18 @@ void glXSwapBuffers(Display *dpy, GLXDrawable drawable)
 
 	stoptrace();  if(vw) { prargx(vw->getGLXDrawable()); }
 	closetrace();
+        glx_frame_num++;
+        if(glx_frame_num >= 60){
+            long long cur_glxfps_time = gettime_nanoTime();
+            glxFPS = (double)(glx_frame_num * 1e9)/(cur_glxfps_time - last_glxfps_time);
+            last_glxfps_time = cur_glxfps_time;
+            glx_frame_num = 0;
+        }
+
         if(first_flag == 3) 
-            fprintf(tmpFp, "PID%d TID%d OneFrameTime %lf CPUTime %lf OpenGLOpTime %lf read_back_flag %d GPU2CPUTime %lf\n", cur_pid, cur_tid, (time_tmp2-last_time_tmp2)/1000000.0, (time_tmp0-last_time_tmp2)/1000000.0, (timeElapsed[nextIndex])/1000000.0, read_back_flag, (time_tmp1-time_tmp0)/1000000.0);
+            fprintf(tmpFp, "PID%d TID%d OneFrameTime %lf CPUTime %lf OpenGLOpTime %lf read_back_flag %d GPU2CPUTime %lf glxFPS:%lf\n", cur_pid, cur_tid, (time_tmp2-last_time_tmp2)/1000000.0, (time_tmp0-last_time_tmp2)/1000000.0, (timeElapsed[nextIndex])/1000000.0, read_back_flag, (time_tmp1-time_tmp0)/1000000.0, glxFPS);
         last_time_tmp2 = time_tmp2;
-        fprintf(stderr, "readclear in glxswapbuffers2:%d, current_index:%d\n",read_clear_tmp,current_event_index);
+        //fprintf(stderr, "readclear in glxswapbuffers2:%d, current_index:%d\n",read_clear_tmp,current_event_index);
         /*if(read_clear_tmp == 0xdeadbeef) {//has input
             onque_event_index = current_event_index;
         }else{

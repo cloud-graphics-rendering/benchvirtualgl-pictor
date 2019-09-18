@@ -783,7 +783,7 @@ int XNextEvent(Display *dpy, XEvent *xe)
 	int i = 1;
 	XEvent *event;
 	double vals2[2] = {-1, -1};
-	fprintf(stderr,"deal with this input in XNextEvent\n");
+	//fprintf(stderr,"deal with this input in XNextEvent\n");
 	//fprintf(stderr,"deal with this input in XPutImage, read_clear:%x, eventID:%d\n", read_clear, keypointer_eventID);
 	//TRY();
         /*
@@ -883,12 +883,12 @@ int XNextEvent(Display *dpy, XEvent *xe)
             if(i == NUM_ROW){
 	        read_clear = 0;
             }
-	    fprintf(stderr,"deal with this input in XNextEvent, read_clear:%x, eventID:%d\n", read_clear, keypointer_eventID);
+	    //fprintf(stderr,"deal with this input in XNextEvent, read_clear:%x, eventID:%d\n", read_clear, keypointer_eventID);
         }else{
-	    fprintf(stderr,"deal with this input in XNextEvent, not keyboard or mouse event\n");
+	    //fprintf(stderr,"deal with this input in XNextEvent, not keyboard or mouse event\n");
             read_clear = 0;
         }
-	fprintf(stderr,"deal with this input in XNextEvent, xe->type:%d, read_clear:%x,\n",xe->type, read_clear);
+	//fprintf(stderr,"deal with this input in XNextEvent, xe->type:%d, read_clear:%x,\n",xe->type, read_clear);
 	handleEvent(dpy, xe);
 
 	//CATCH();

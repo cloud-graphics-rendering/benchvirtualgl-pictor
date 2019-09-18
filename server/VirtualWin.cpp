@@ -538,6 +538,7 @@ void VirtualWin::sendX11(GLint drawBuf, bool spoilLast, bool sync,
 	}
         //if(read_clear == 0xdeadbeef){
         if(shift_event_index != -1){
+            //fprintf(stderr, "sendX11, shift_event_index:%d, valid: %d\n", shift_event_index, timeTracker[shift_event_index].valid);
             //if((timeTracker[current_event_index].eventID == keypointer_eventID) && timeTracker[current_event_index].valid){
             //if((timeTracker[shift_event_index].eventID == keypointer_eventID) && timeTracker[shift_event_index].valid){
             if(timeTracker[shift_event_index].valid){
@@ -553,6 +554,7 @@ void VirtualWin::sendX11(GLint drawBuf, bool spoilLast, bool sync,
             }
             read_clear = 0;
         }else{
+            //fprintf(stderr, "sendX11, shift_event_index:%d \n", shift_event_index);
             f->fb.kb_flag = 0;
             read_clear = 0;
         }

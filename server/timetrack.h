@@ -9,7 +9,7 @@
 #define TIME_COLUM 12
 #define NUM_ROW 1000
 
-#define SLOT_NUM 2
+#define SLOT_NUM 1
 
 typedef struct timeTrack{
     int eventID;
