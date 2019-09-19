@@ -25,11 +25,6 @@
 #endif
 
 using namespace vglserver;
-extern int read_clear;
-extern int keypointer_eventID;
-extern int current_event_index;
-extern timeTrack* timeTracker;
-extern FILE* getLogFilePointer(pid_t cur_pid);
 
 // This interposes enough of XCB to make Qt 5 work.  It may be necessary to
 // expand this in the future, but at the moment there is no XCB equivalent for
@@ -281,29 +276,6 @@ xcb_void_cookie_t xcb_copy_area(xcb_connection_t *conn,
 				uint16_t height)
 {
         xcb_void_cookie_t tmp_xcb_cookie = _xcb_copy_area(conn, src_drawable, dst_drawable, gc, src_x, src_y, dst_x, dst_y, width, height);
-        /*pid_t cur_pid = getpid();
-        pid_t cur_tid = syscall(SYS_gettid);
-        FILE* tmpFp = getLogFilePointer(cur_pid);
-        if(tmpFp == NULL){
-           fprintf(globalLog, "tmpFp in Xnextevent is NULL\n");
-        }*/
-	if(read_clear == 0xdeadbeef){
-            if((timeTracker[current_event_index].eventID == keypointer_eventID) && timeTracker[current_event_index].valid){
-                timeTracker[0].eventID = keypointer_eventID;//save current ID.
-                timeTracker[0].array[0] = current_event_index;//save index
-                timeTracker[current_event_index].array[6] = (long long)gettime_nanoTime();//nsTreq_send
-                timeTracker[0].valid = 0xdeadbeef;//save valid field
-                //fprintf(tmpFp, "PID: %d, TID: %d, xcb HandlingID: %d, index: %d, [4]:%llu, [6]:%llu\n",cur_pid, cur_tid, keypointer_eventID, current_event_index, timeTracker[current_event_index].array[4],timeTracker[current_event_index].array[6]);
-            }else{
-                //fprintf(tmpFp, "PID: %d, TID: %d, Fatal: Multiple Events come into game before xcb_copy_area was called, ID: %d, ArrayID: %d, index: %d\n",cur_pid, cur_tid, keypointer_eventID,timeTracker[current_event_index].eventID ,current_event_index);
-                timeTracker[current_event_index].valid = 0;
-                timeTracker[0].valid = 0;//nsTreq_send
-            }
-            read_clear = 0;
-	}else{
-            //fprintf(tmpFp, "PID: %d, TID: %d, In xcb_copy_area, read clear is not 0xdeadbeef. ID:%d, index:%d\n", cur_pid, cur_tid, keypointer_eventID, current_event_index);
-            timeTracker[0].valid = 0;//save valid field
-	}
 	return tmp_xcb_cookie;
 }
 
