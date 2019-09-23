@@ -43,7 +43,7 @@ int current_event_index = 1;
 int onque_event_index = -1;
 int read_clear = 0;
 int keypointer_eventID = 0;
-extern long long gettime_nanoTime();
+extern long long gettime_nanoTime(void);
 EOI_LoopQueue eoi_loopque;
 #endif
 

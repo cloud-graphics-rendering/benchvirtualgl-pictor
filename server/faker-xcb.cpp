@@ -37,8 +37,6 @@ using namespace vglserver;
 extern FILE *globalLog;
 
 
-extern long long gettime_nanoTime(void);
-
 extern "C" {
 
 
