@@ -34,13 +34,6 @@ make
 
 Add -DCMAKE_BUILD_TYPE=Debug to the CMake command line.
 
-SSL Support:
-If built with SSL support, VirtualGL can use OpenSSL to encrypt the traffic it sends and 
-receives via the VGL Transport. This is only a marginally useful feature, however, since 
-VirtualGL can also tunnel the VGL Transport through SSH. To enable SSL support, set the 
-VGL_USESSL CMake variable to 1. 
-Please look here for more information: https://github.com/VirtualGL/virtualgl/blob/master/BUILDING.md
-
 Then, you need to install and config virtualGl:
 $ cd build
 $ rm ./*.deb
@@ -54,3 +47,7 @@ Then, N,N,N,X
 
 Attention: we have scripts that describes how to compile 64 bit and 32 bit at the same time. But, we encourage you to use 64 bits
 virtualGL, because all of our benchmarks are 64 bits.
+---------------------------------------------------------------------------------------------------------------------------
+In fact, you can foget all the steps above, and just run the two scripts: setup.sh and build64.sh.
+setup.sh: only run once.
+build64.sh: build and install VirtualGL on your machine automatically.
