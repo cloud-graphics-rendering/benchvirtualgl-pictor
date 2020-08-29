@@ -462,7 +462,9 @@ void VirtualDrawable::readPixels(GLint x, GLint y, GLint width, GLint pitch,
                 long long time_tmp13 = gettime_nanoTime();
 		_glBindBuffer(GL_PIXEL_PACK_BUFFER_EXT, 0);
                 long long time_tmp14 = gettime_nanoTime();
-                fprintf(tmpFp, "222 PID %d TID %d beforeMap %lf Map %lf memcpy %lf unmap %lf bind %lf\n", cur_pid, cur_tid, (time_tmp10-time_tmp1)/1000000.0,(time_tmp11-time_tmp10)/1000000.0,(time_tmp12-time_tmp11)/1000000.0,(time_tmp13-time_tmp12)/1000000.0,(time_tmp14-time_tmp13)/1000000.0);
+                fprintf(tmpFp, "222 PID %d TID %d beforeMap %lf Map %lf memcpy %lf unmap %lf bind %lf\n",
+                        cur_pid, cur_tid, (time_tmp10-time_tmp1)/1000000.0,(time_tmp11-time_tmp10)/1000000.0,
+			(time_tmp12-time_tmp11)/1000000.0,(time_tmp13-time_tmp12)/1000000.0,(time_tmp14-time_tmp13)/1000000.0);
 		#endif
 		tTotal = getTime() - t0;
 		numFrames++;
@@ -539,7 +541,9 @@ void VirtualDrawable::readPixels(GLint x, GLint y, GLint width, GLint pitch,
 		setenv(envName, envValue, 1);
 	}
         long long time_tmp3 = gettime_nanoTime();
-     fprintf(tmpFp, "333 PID %d TID %d readPixelsPrepare %lf readPixelRead %lf readPixelAutotest %lf\n", cur_pid, cur_tid, (time_tmp1-time_tmp0)/1000000.0,(time_tmp2-time_tmp1)/1000000.0,(time_tmp3-time_tmp2)/1000000.0);
+        fprintf(tmpFp, "333 PID %d TID %d readPixelsPrepare %lf readPixelRead %lf readPixelAutotest %lf\n",
+             cur_pid, cur_tid, (time_tmp1-time_tmp0)/1000000.0,
+             (time_tmp2-time_tmp1)/1000000.0,(time_tmp3-time_tmp2)/1000000.0);
 }
 
 

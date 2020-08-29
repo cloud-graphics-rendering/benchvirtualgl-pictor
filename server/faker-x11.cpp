@@ -812,7 +812,6 @@ int XNextEvent(Display *dpy, XEvent *xe)
         UnlockDisplay(dpy);
 	retval = _XNextEvent(dpy, xe);
 	//fprintf(tmpFp,"PID: %d, TID: %d, 111111 event type: %d, xmotion.x: %d, xmotion.y: %d\n", cur_pid, cur_tid, xe->type, xe->xmotion.x, xe->xmotion.y);
-        //if(xe->type == 6 && xe->xmotion.x == 640 && xe->xmotion.y == 480){
         if(xe->type == 6 && xe->xmotion.x == 960 && xe->xmotion.y == 540){
             if(InGameStatus == 0){
                    InGameThreashold++;
@@ -831,8 +830,6 @@ int XNextEvent(Display *dpy, XEvent *xe)
             }
             int tmp1 = xe->xmotion.x;
             int tmp2 = xe->xmotion.y;
-            //xe->xmotion.x = xe->xmotion.x - lastMouseXPos + 640;
-            //xe->xmotion.y = xe->xmotion.y - lastMouseYPos + 480;
             xe->xmotion.x = xe->xmotion.x - lastMouseXPos + 960;
             xe->xmotion.y = xe->xmotion.y - lastMouseYPos + 540;
             xe->xmotion.x_root = xe->xmotion.x;
@@ -840,8 +837,6 @@ int XNextEvent(Display *dpy, XEvent *xe)
             lastMouseXPos = tmp1;
             lastMouseYPos = tmp2;
         }
-        //key_t key;
-        //char* filename=NULL;
         if(!timeTrackerAttached){
             char hostname[256];
             char *home = getenv("HOME");
@@ -849,7 +844,6 @@ int XNextEvent(Display *dpy, XEvent *xe)
             gethostname(hostname, sizeof(hostname));
             char *num_string = getenv("DISPLAY");
             char *posfix = ".pid";
-            //filename = (char*)malloc(strlen(posfix) + strlen(num_string)+strlen(hostname)+strlen(vncfolder)+strlen(home)+16); // +1 for the null-terminator
             char *filename = (char*)malloc(strlen(posfix) + strlen(num_string)+strlen(hostname)+strlen(vncfolder)+strlen(home)+16); // +1 for the null-terminator
             strcpy(filename, home);
             strcat(filename, vncfolder);
@@ -868,7 +862,6 @@ int XNextEvent(Display *dpy, XEvent *xe)
         XKeyEvent* xkey = (XKeyEvent*)xe;
         //if(filename != NULL)
 	//    fprintf(stderr,"filename: %s, key:%d\n", filename, key);
-	//if((xe->type == KeyPress || xe->type == 6) && read_clear == 0 && (xkey->time != keypointer_eventID)){
 	if((xe->type == KeyPress || xe->type == 6) && (xkey->time != keypointer_eventID)){
             keypointer_eventID = xkey->time;
             for(i=1;i<NUM_ROW;i++){
@@ -883,12 +876,9 @@ int XNextEvent(Display *dpy, XEvent *xe)
             if(i == NUM_ROW){
 	        read_clear = 0;
             }
-	    //fprintf(stderr,"deal with this input in XNextEvent, read_clear:%x, eventID:%d\n", read_clear, keypointer_eventID);
         }else{
-	    //fprintf(stderr,"deal with this input in XNextEvent, not keyboard or mouse event\n");
             read_clear = 0;
         }
-	//fprintf(stderr,"deal with this input in XNextEvent, xe->type:%d, read_clear:%x,\n",xe->type, read_clear);
 	handleEvent(dpy, xe);
 
 	//CATCH();

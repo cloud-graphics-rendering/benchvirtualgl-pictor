@@ -637,12 +637,6 @@ int fbx_flip(fbx_struct *fb, int x_, int y_, int width_, int height_)
 int fbx_awrite(fbx_struct *fb, int srcX_, int srcY_, int dstX_, int dstY_,
 	int width_, int height_)
 {
-        //pid_t cur_pid = getpid();
-        //pid_t cur_tid = syscall(SYS_gettid);
-        //FILE* tmpFp = getLogFilePointer(cur_pid);
-        //if(tmpFp == NULL){
-        //   fprintf(stderr, "tmpFp in fbx_awrite is NULL\n");
-        //}
 	int srcX, srcY, dstX, dstY, width, height;
         
 	if(!fb) _throw("Invalid argument");
@@ -659,8 +653,6 @@ int fbx_awrite(fbx_struct *fb, int srcX_, int srcY_, int dstX_, int dstY_,
 	if(!fb->wh.dpy || !fb->wh.d || !fb->xi || !fb->bits)
 		_throw("Not initialized");
 
-	//key_t key;
-        //char *filename = NULL; // +1 for the null-terminator
         if(!timeTrackerAttached2){
            char hostname[256];
            char *home = getenv("HOME");
@@ -675,9 +667,7 @@ int fbx_awrite(fbx_struct *fb, int srcX_, int srcY_, int dstX_, int dstY_,
            strcat(filename, hostname);
            strcat(filename, num_string);
            strcat(filename, posfix);
-	   //key_t key = ftok(filename, 65);
 	   key_t key = ftok(filename, 65);
-           //key_t key = ftok("shmfile", 65);
 
            int shmid = shmget(key, NUM_ROW * sizeof(timeTrack), 0666|IPC_CREAT);
            timeTracker2 = (timeTrack*) shmat(shmid, (void*)0, 0);
@@ -688,19 +678,13 @@ int fbx_awrite(fbx_struct *fb, int srcX_, int srcY_, int dstX_, int dstY_,
         //}
         if(fb->kb_flag == 0xdeadbeef){
            if((timeTracker2[fb->current_event_index].eventID == fb->keypointer_eventID) && timeTracker2[fb->current_event_index].valid){
-              timeTracker2[0].eventID = fb->keypointer_eventID;//nsTreq_send
-              timeTracker2[0].array[0] = fb->current_event_index;//nsTreq_send
-              //fprintf(tmpFp, "PID: %d, TID: %d, fbx Handling:%d\n", cur_pid, cur_tid, timeTracker2[0].eventID);
-              //fprintf(stderr, "PID: %d, TID: %d, fbx Handling:%d\n", cur_pid, cur_tid, timeTracker2[0].eventID);
+              timeTracker2[0].valid 	= 0xdeadbeef;//nsTreq_send
+              timeTracker2[0].eventID 	= fb->keypointer_eventID;//nsTreq_send
+              timeTracker2[0].array[0] 	= fb->current_event_index;//nsTreq_send
               timeTracker2[fb->current_event_index].array[6] = (long long)gettime_nanoTime();//nsTreq_send
-              timeTracker2[0].valid = 0xdeadbeef;//nsTreq_send
-              //fprintf(tmpFp, "PID: %d, TID: %d, fbx: ID: %ld, [0]: %lu, [1]: %lu, [4]: %lu, [6]: %lu\n", cur_pid, cur_tid, fb->keypointer_eventID, timeTracker2[fb->current_event_index].array[0], timeTracker2[fb->current_event_index].array[1], timeTracker2[fb->current_event_index].array[4], timeTracker2[fb->current_event_index].array[6]);
-              //fprintf(stderr, "PID: %d, TID: %d, fbx: ID: %ld, [0]: %lu, [1]: %lu, [4]: %lu, [6]: %lu\n", cur_pid, cur_tid, fb->keypointer_eventID, timeTracker2[fb->current_event_index].array[0], timeTracker2[fb->current_event_index].array[1], timeTracker2[fb->current_event_index].array[4], timeTracker2[fb->current_event_index].array[6]);
            }else{
               timeTracker2[fb->current_event_index].valid = 0;//nsTreq_send
               timeTracker2[0].valid = 0;//nsTreq_send
-              //fprintf(tmpFp, "Fatal: Bad Match..handling:%d, in fbx_awrite\n", index);
-              //fprintf(stderr, "Fatal: Bad Match..handling:%d, in fbx_awrite\n", index);
            }
            fb->kb_flag = 0;
            fb->xi->data[0]  = 0xde;
