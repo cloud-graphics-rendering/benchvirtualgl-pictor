@@ -73,42 +73,6 @@ using namespace vglserver;
 
 
 extern FILE* getLogFilePointer(pid_t cur_pid);
-/*
-FILE* getLogFilePointer(pid_t cur_pid){
-     struct fd_pair *tmpfd = headerfd;
-     struct fd_pair *lstfd = NULL;
-     int try_find = 0;
-
-     char str1[10];
-     char logpath[80] ={'/','t','m','p','/','v','g','l','/'};
-
-     while(tmpfd!=NULL){
-         if(tmpfd->pid != cur_pid){
-             lstfd = tmpfd;
-             tmpfd = tmpfd->next;
-             try_find = 1;
-         }else{
-             return tmpfd->fd;
-         }
-     }
-     if(tmpfd == NULL){
-          tmpfd = (struct fd_pair*)malloc(sizeof(struct fd_pair));
-          tmpfd->pid = cur_pid;
-          sprintf(str1, "%d", cur_pid);
-          strcat(logpath, str1);
-          tmpfd->fd = fopen(logpath, "ab+");
-          //fprintf(globalLog, "logpath:%s, fd: %p\n", logpath, tmpfd->fd);
-          tmpfd->status = 1;
-          tmpfd->next = NULL;
-          if(try_find == 0){
-             headerfd = tmpfd;
-          }else{
-             lstfd->next = tmpfd;
-          }
-          return (tmpfd->fd!=NULL)?tmpfd->fd:NULL;
-     }
-}
-*/
 
 extern "C" {
 

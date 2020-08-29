@@ -22,6 +22,7 @@
 #include <sys/time.h>
 #include <sys/syscall.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 
 #ifndef TIME_TRACK
 #include "timetrack.h"
@@ -54,6 +55,13 @@ FILE* getLogFilePointer(pid_t cur_pid){
 
      char str1[10];
      char logpath[80] ={'/','t','m','p','/','v','g','l','/'};
+
+     struct stat info;                                        
+     if (stat(logpath, &info) != 0){                          
+         mode_t mode = 0755;                                  
+         int ret = mkdir(logpath, mode);                      
+         if (ret != 0) fprintf(stderr, "create file failed!");
+     }                                                        
 
      while(tmpfd!=NULL){
          if(tmpfd->pid != cur_pid){
