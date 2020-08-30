@@ -536,20 +536,13 @@ void VirtualWin::sendX11(GLint drawBuf, bool spoilLast, bool sync,
                         time_tmp2 = gettime_nanoTime();
 		}
 	}
-        //if(read_clear == 0xdeadbeef){
         if(shift_event_index != -1){
-            //fprintf(stderr, "sendX11, shift_event_index:%d, valid: %d\n", shift_event_index, timeTracker[shift_event_index].valid);
-            //if((timeTracker[current_event_index].eventID == keypointer_eventID) && timeTracker[current_event_index].valid){
-            //if((timeTracker[shift_event_index].eventID == keypointer_eventID) && timeTracker[shift_event_index].valid){
             if(timeTracker[shift_event_index].valid){
                 f->fb.kb_flag = 0xdeadbeef;
                 f->fb.keypointer_eventID = timeTracker[shift_event_index].eventID;
-                //f->fb.keypointer_eventID = keypointer_eventID;
-                //f->fb.current_event_index = current_event_index;
                 f->fb.current_event_index = shift_event_index;
             }else{
                 f->fb.kb_flag = 0;
-                //timeTracker[current_event_index].valid = 0;
                 timeTracker[shift_event_index].valid = 0;
             }
             read_clear = 0;

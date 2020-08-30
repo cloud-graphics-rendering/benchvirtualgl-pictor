@@ -72,8 +72,6 @@ using namespace vglserver;
 // Interposed X11 functions
 
 
-extern FILE* getLogFilePointer(pid_t cur_pid);
-
 extern "C" {
 
 
@@ -747,16 +745,6 @@ int XNextEvent(Display *dpy, XEvent *xe)
 	int i = 1;
 	XEvent *event;
 	double vals2[2] = {-1, -1};
-	//fprintf(stderr,"deal with this input in XNextEvent\n");
-	//fprintf(stderr,"deal with this input in XPutImage, read_clear:%x, eventID:%d\n", read_clear, keypointer_eventID);
-	//TRY();
-        /*
-        pid_t cur_pid = getpid();
-        pid_t cur_tid = syscall(SYS_gettid);
-        FILE* tmpFp = getLogFilePointer(cur_pid);
-        if(tmpFp == NULL){
-           fprintf(globalLog, "tmpFp in Xnextevent is NULL\n");
-        }*/
 
 	register _XQEvent *qelt;
         LockDisplay(dpy);
@@ -775,7 +763,6 @@ int XNextEvent(Display *dpy, XEvent *xe)
 	}
         UnlockDisplay(dpy);
 	retval = _XNextEvent(dpy, xe);
-	//fprintf(tmpFp,"PID: %d, TID: %d, 111111 event type: %d, xmotion.x: %d, xmotion.y: %d\n", cur_pid, cur_tid, xe->type, xe->xmotion.x, xe->xmotion.y);
         if(xe->type == 6 && xe->xmotion.x == 960 && xe->xmotion.y == 540){
             if(InGameStatus == 0){
                    InGameThreashold++;
